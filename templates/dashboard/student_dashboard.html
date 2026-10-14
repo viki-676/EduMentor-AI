@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Top Welcome Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Welcome, {{ user.full_name }}! 👋</h2>
+            <p class="text-muted small mb-0">
+                Track your performance analytics, monitor weak areas, and follow your tailored study roadmap.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill shadow-sm">
+                🔥 {{ streak_days|default(0) }} Day Streak
+            </span>
+            <a href="{{ url_for('select_path') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-repeat me-1"></i> Path: {{ 'College' if user.learning_path == 'college' else 'Competitive' }}
+            </a>
+            <a href="{{ url_for('mentor_view') }}" class="btn btn-primary-navy btn-sm">
+                <i class="bi bi-robot me-1"></i> AI Mentor
+            </a>
+        </div>
+    </div>
+
+    <!-- Metric Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Quizzes Attempted</span>
+                    <div class="stat-icon icon-blue">
+                        <i class="bi bi-journal-check"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ analytics.total_quizzes }}</h3>
+                <small class="text-secondary">Completed sessions</small>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Overall Accuracy</span>
+                    <div class="stat-icon icon-teal">
+                        <i class="bi bi-pie-chart-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-teal">{{ analytics.overall_accuracy }}%</h3>
+                <small class="text-secondary">{{ analytics.total_correct }} of {{ analytics.total_questions_attempted }} questions</small>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Readiness Level</span>
+                    <div class="stat-icon icon-indigo">
+                        <i class="bi bi-award-fill"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-0 text-primary">{{ recommendations.readiness_level }}</h5>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-{{ recommendations.readiness_badge }}" role="progressbar" style="width: {{ recommendations.readiness_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase">Active Focus</span>
+                    <div class="stat-icon icon-blue">
+                        <i class="bi bi-bullseye"></i>
+                    </div>
+                </div>
+                <h6 class="fw-bold mb-1 text-dark text-truncate">{{ user.degree_or_stream if user.learning_path == 'college' else user.target_exam or 'SSC' }}</h6>
+                <a href="{{ url_for('college_path') if user.learning_path == 'college' else url_for('competitive_path') }}" class="small fw-semibold text-primary text-decoration-none">
+                    Start practice <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Tasks & Continue Learning Row -->
+    <div class="row g-4 mb-4">
+        <!-- Today's Study Tasks -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-calendar-check text-teal me-2"></i>Today's Study Agenda
+                    </h5>
+                    <a href="{{ url_for('planner_view') }}" class="small text-teal text-decoration-none fw-semibold">
+                        View Planner <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% if today_tasks %}
+                <div class="list-group list-group-flush">
+                    {% for task in today_tasks %}
+                    <div class="list-group-item px-0 py-2.5 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <form action="{{ url_for('planner_task_toggle', task_id=task.id) }}" method="POST" class="d-inline m-0">
+                                <input type="checkbox" class="form-check-input" onchange="this.form.submit()" {% if task.is_completed %}checked{% endif %}>
+                            </form>
+                            <div>
+                                <span class="{% if task.is_completed %}text-decoration-line-through text-muted{% else %}text-dark fw-semibold{% endif %} small d-block">{{ task.title }}</span>
+                                <small class="text-muted">{{ task.subject }} &bull; {{ task.duration_minutes }}m</small>
+                            </div>
+                        </div>
+                        {% if not task.is_completed %}
+                        <a href="{{ url_for('quiz_view', subject=task.subject) }}" class="btn btn-outline-teal btn-sm py-0 px-2" style="font-size: 0.75rem;">Start</a>
+                        {% else %}
+                        <span class="badge bg-success-subtle text-success small">Done</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-3 bg-light rounded-3 text-center my-auto">
+                    <i class="bi bi-calendar2-check text-success fs-3 mb-1 d-block"></i>
+                    <p class="small text-muted mb-2">No pending tasks scheduled for today.</p>
+                    <a href="{{ url_for('planner_view') }}" class="btn btn-sm btn-outline-teal">Schedule Study Session</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Continue Learning & Recommended Tutorials -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-journal-richtext text-primary me-2"></i>Continue Learning Notes
+                    </h5>
+                    <a href="{{ url_for('resources_catalog') }}" class="small text-primary text-decoration-none fw-semibold">
+                        All Resources <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="d-flex flex-column gap-2.5">
+                    {% for res in recommended_resources %}
+                    <a href="{{ url_for('resource_detail', slug=res.slug) }}" class="p-2.5 rounded-3 bg-light border text-decoration-none text-dark hover-shadow transition-all d-flex justify-content-between align-items-center">
+                        <div class="me-2 text-truncate">
+                            <span class="badge bg-teal-subtle text-teal small me-1">{{ res.category }}</span>
+                            <span class="fw-semibold small">{{ res.title }}</span>
+                        </div>
+                        <span class="text-muted small text-nowrap"><i class="bi bi-clock me-1"></i>{{ res.estimated_read_minutes }}m</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <!-- Score Timeline Chart -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-graph-up text-primary me-2"></i>Score Progression Trend
+                    </h5>
+                    <span class="badge bg-light text-secondary border">Recent 10 Quizzes</span>
+                </div>
+                <div style="height: 260px; position: relative;">
+                    {% if analytics.total_quizzes > 0 %}
+                    <canvas id="scoreTrendChart"></canvas>
+                    {% else %}
+                    <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                        <i class="bi bi-bar-chart fs-1 mb-2 opacity-50"></i>
+                        <p class="small mb-0">No quiz data yet. Take a quiz to view your score trend line!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Topic Accuracy Chart -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-bar-chart-fill text-teal me-2"></i>Topic Mastery
+                    </h5>
+                    <span class="badge bg-light text-secondary border">Accuracy (%)</span>
+                </div>
+                <div style="height: 260px; position: relative;">
+                    {% if analytics.topic_performance %}
+                    <canvas id="topicAccuracyChart"></canvas>
+                    {% else %}
+                    <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                        <i class="bi bi-pie-chart fs-1 mb-2 opacity-50"></i>
+                        <p class="small mb-0">Topic breakdown will appear here after your first quiz.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ML Performance Predictor Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white border-start border-4 border-info">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-info-subtle text-info fw-bold px-3 py-1 rounded-pill">Scikit-Learn ML Pipeline</span>
+                    <span class="badge bg-secondary-subtle text-secondary small">Academic Benchmark</span>
+                </div>
+                <h4 class="fw-bold mb-0 text-dark">Predictive Student Performance & Risk Model</h4>
+            </div>
+            {% if ml_prediction %}
+            <div class="text-md-end">
+                <span class="badge bg-{{ ml_prediction.badge }} fs-6 px-3 py-2 rounded-pill shadow-sm">
+                    Status: {{ ml_prediction.status }} ({{ ml_prediction.risk_probability }}% Risk)
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if ml_prediction %}
+        <p class="text-secondary small mb-3">
+            <strong>Model Prediction:</strong> {{ ml_prediction.message }}
+        </p>
+        {% else %}
+        <p class="text-secondary small mb-3">
+            Complete at least one practice quiz to generate your real-time machine learning risk projection.
+        </p>
+        {% endif %}
+
+        <!-- ML Metrics & Evaluation Disclosure Table -->
+        <div class="row g-3 pt-3 border-top">
+            <div class="col-6 col-md-3">
+                <div class="p-2 bg-light rounded text-center">
+                    <small class="text-muted d-block">Baseline Accuracy</small>
+                    <span class="fw-bold text-dark">{{ (ml_metrics.baseline_accuracy * 100)|round(1) }}%</span>
+                    <small class="text-muted d-block">(DummyClassifier)</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2 bg-light rounded text-center">
+                    <small class="text-muted d-block">Trained Model Accuracy</small>
+                    <span class="fw-bold text-success">{{ (ml_metrics.model_accuracy * 100)|round(1) }}%</span>
+                    <small class="text-muted d-block">(LogisticRegression)</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2 bg-light rounded text-center">
+                    <small class="text-muted d-block">Precision / Recall</small>
+                    <span class="fw-bold text-dark">{{ (ml_metrics.precision * 100)|round(1) }}% / {{ (ml_metrics.recall * 100)|round(1) }}%</span>
+                    <small class="text-muted d-block">Test Split</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2 bg-light rounded text-center">
+                    <small class="text-muted d-block">F1-Score / Samples</small>
+                    <span class="fw-bold text-primary">{{ ml_metrics.f1_score }}</span>
+                    <small class="text-muted d-block">{{ ml_metrics.test_samples }} test instances</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <small class="text-muted fst-italic">
+                <i class="bi bi-info-circle me-1"></i> <strong>Scientific Transparency Note:</strong>
+                {{ ml_metrics.data_type }}. Model uses a strict 75/25 train/test split without data leakage. Rule-based recommendations act as the verified fallback for student guidance.
+            </small>
+        </div>
+    </div>
+
+    <!-- Personalized Study Plan & Weak Topics -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-clipboard-check-fill text-primary me-2"></i>Personalized Action Plan
+                </h5>
+                <div class="list-group list-group-flush">
+                    {% for item in recommendations.study_plan %}
+                    <div class="list-group-item px-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-primary-subtle text-primary">{{ item.day }}</span>
+                            <span class="small text-muted"><i class="bi bi-clock me-1"></i>~{{ item.estimated_minutes }} mins</span>
+                        </div>
+                        <h6 class="fw-bold mb-1 text-dark">{{ item.title }}</h6>
+                        <p class="small text-secondary mb-0">{{ item.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Targeted Weak Concepts (&lt;60%)
+                </h5>
+                {% if recommendations.weak_topics %}
+                <div class="d-flex flex-column gap-3">
+                    {% for weak in recommendations.weak_topics %}
+                    <div class="p-3 bg-light rounded-3 border-start border-3 border-warning">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="text-dark">{{ weak.topic }}</strong>
+                            <span class="badge bg-danger-subtle text-danger">{{ weak.accuracy }}% Accuracy</span>
+                        </div>
+                        <small class="text-muted d-block">Subject: {{ weak.subject }} ({{ weak.correct }}/{{ weak.total }} correct)</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-check-circle-fill text-success fs-1 mb-2 d-block"></i>
+                    {% if analytics.total_quizzes == 0 %}
+                    <p class="small mb-0">Take your first quiz to identify specific topics needing review.</p>
+                    {% else %}
+                    <p class="small mb-0">No weak topics identified! You are maintaining solid accuracy across all tested concepts.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="mt-auto pt-3 border-top">
+                    <a href="{{ url_for('mentor_view') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-robot me-1"></i> Open AI Mentor for Concept Drill
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Quiz Attempts Table -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <h5 class="fw-bold text-dark mb-3">Recent Quiz Attempts</h5>
+        {% if analytics.recent_attempts %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-uppercase">
+                    <tr>
+                        <th>Subject / Category</th>
+                        <th>Path</th>
+                        <th>Score</th>
+                        <th>Accuracy</th>
+                        <th>Time Spent</th>
+                        <th>Date & Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in analytics.recent_attempts %}
+                    <tr>
+                        <td><strong>{{ a.subject_or_category }}</strong></td>
+                        <td><span class="badge bg-light text-secondary border">{{ a.learning_path }}</span></td>
+                        <td>{{ a.score }} / {{ a.total_questions }}</td>
+                        <td>
+                            <span class="badge {% if a.percentage >= 70 %}bg-success-subtle text-success{% elif a.percentage >= 50 %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %}">
+                                {{ a.percentage }}%
+                            </span>
+                        </td>
+                        <td>{{ a.time_taken_seconds }}s</td>
+                        <td class="small text-muted">{{ a.created_at }}</td>
+                        <td>
+                            <a href="{{ url_for('quiz_result', attempt_id=a.id) }}" class="btn btn-sm btn-outline-primary py-0">Review</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <p class="small mb-2">You haven't attempted any quizzes yet.</p>
+            <a href="{{ url_for('college_path') if user.learning_path == 'college' else url_for('competitive_path') }}" class="btn btn-teal btn-sm text-white">
+                Attempt Your First Quiz
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Pass Python analytics data into client JS for Chart.js rendering
+    window.scoreTimelineData = {{ analytics.score_timeline | tojson }};
+    window.topicPerformanceData = {{ analytics.topic_performance | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}EduMentor AI - Personalized Learning & Exam Preparation System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center text-lg-start mb-5 shadow-sm">
+    <div class="container py-4">
+        <div class="row align-items-center g-5">
+            <!-- Left Column: Branding, Mission, and CTAs -->
+            <div class="col-lg-7 position-relative" style="z-index: 1;">
+                <div class="hero-tag mb-3">
+                    <i class="bi bi-mortarboard-fill text-info me-1"></i> AI-Powered Student Learning Platform
+                </div>
+                <h1 class="display-4 fw-extrabold text-white mb-3 lh-sm">
+                    Learn Smarter, Master Faster with <span class="text-info">EduMentor AI</span>
+                </h1>
+                <p class="lead text-light mb-4 opacity-90 lh-base">
+                    A personalized learning and competitive exam preparation platform designed for college students and aspirants. Practice quizzes, get AI-powered explanations, track your progress, and receive tailored revision plans.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    {% if current_user %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-teal btn-lg px-4 shadow">
+                        <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                    </a>
+                    <a href="{{ url_for('mentor_view') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-robot me-2"></i>Talk to AI Mentor
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-teal btn-lg px-4 shadow">
+                        <i class="bi bi-rocket-takeoff-fill me-2"></i>Start Learning Free
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Column: Two Learning Pathways Card -->
+            <div class="col-lg-5 position-relative" style="z-index: 1;">
+                <div class="card bg-white text-dark shadow-lg border-0 rounded-4 p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-semibold">
+                            <i class="bi bi-compass me-1"></i> Tailored Pathways
+                        </span>
+                        <span class="badge bg-success-subtle text-success px-3 py-1.5 rounded-pill">
+                            <i class="bi bi-cpu me-1"></i> Local ML
+                        </span>
+                    </div>
+                    <h5 class="fw-bold mb-1 text-dark">Two Learning Pathways</h5>
+                    <p class="text-muted small mb-4">Choose your learning track to get customized topic assessments and performance analytics.</p>
+                    
+                    <!-- College Learning Pathway Card -->
+                    <a href="#paths" class="text-decoration-none text-dark">
+                        <div class="p-3 bg-light rounded-3 mb-3 border card-hover d-flex align-items-center gap-3">
+                            <div class="stat-icon icon-blue flex-shrink-0">
+                                <i class="bi bi-laptop"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold">Path A: College Learning</h6>
+                                    <i class="bi bi-chevron-right text-muted small"></i>
+                                </div>
+                                <small class="text-muted d-block mt-1">Python, Data Structures, and DBMS for B.Tech/BCA students.</small>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Competitive Exams Pathway Card -->
+                    <a href="#paths" class="text-decoration-none text-dark">
+                        <div class="p-3 bg-light rounded-3 border card-hover d-flex align-items-center gap-3">
+                            <div class="stat-icon icon-teal flex-shrink-0">
+                                <i class="bi bi-award"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold">Path B: Competitive Exams</h6>
+                                    <i class="bi bi-chevron-right text-muted small"></i>
+                                </div>
+                                <small class="text-muted d-block mt-1">SSC, Banking, Railway, UPSC, and State PSC preparation.</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Overview Ribbon -->
+<section class="container mb-5">
+    <div class="row g-3">
+        <div class="col-6 col-md-3">
+            <div class="stat-card text-center h-100">
+                <h3 class="fw-bold text-primary mb-1">{{ total_questions }}+</h3>
+                <p class="text-muted small mb-0">Calibrated MCQs</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card text-center h-100">
+                <h3 class="fw-bold text-teal mb-1">2 Tracks</h3>
+                <p class="text-muted small mb-0">College &amp; Competitive</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card text-center h-100">
+                <h3 class="fw-bold text-primary mb-1">{{ total_resources }}+</h3>
+                <p class="text-muted small mb-0">Concept Tutorials</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card text-center h-100">
+                <h3 class="fw-bold text-teal mb-1">100% Free</h3>
+                <p class="text-muted small mb-0">Zero Paid APIs Required</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Two Learning Paths Details -->
+<section id="paths" class="container py-4 mb-5">
+    <div class="text-center mb-5">
+        <span class="text-uppercase text-primary fw-bold small letter-spacing-1">Personalized Curricula</span>
+        <h2 class="fw-bold mt-1">Select Your Core Learning Path</h2>
+        <p class="text-muted mx-auto" style="max-width: 620px;">
+            Whether you are preparing for semester university exams or competitive government recruitment tests, EduMentor AI adapts to your curriculum.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Path A: College Learning -->
+        <div class="col-md-6">
+            <div class="card h-100 card-hover p-4 border-top border-primary border-4 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="badge bg-primary px-3 py-1.5 rounded-pill">College Track</span>
+                    <i class="bi bi-laptop fs-2 text-primary"></i>
+                </div>
+                <h4 class="fw-bold mb-2">College Semester Learning</h4>
+                <p class="text-muted mb-3">
+                    Designed for <strong>B.Tech, BCA, B.Sc., and CS students</strong> to master foundational computer science concepts with theory explanations and coding problems.
+                </p>
+                <div class="list-group list-group-flush mb-4">
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                        <span><i class="bi bi-code-slash text-primary me-2"></i>Python Programming</span>
+                        <span class="badge bg-light text-dark border">{{ subject_counts.get('Python Programming', 8) }} Questions</span>
+                    </div>
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                        <span><i class="bi bi-diagram-3 text-primary me-2"></i>Data Structures</span>
+                        <span class="badge bg-light text-dark border">{{ subject_counts.get('Data Structures', 8) }} Questions</span>
+                    </div>
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                        <span><i class="bi bi-database-fill text-primary me-2"></i>DBMS &amp; SQL</span>
+                        <span class="badge bg-light text-dark border">{{ subject_counts.get('DBMS', 8) }} Questions</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('college_path') if current_user else url_for('login') }}" class="btn btn-outline-primary mt-auto">
+                    Explore College Subjects <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Path B: Competitive Exams -->
+        <div class="col-md-6">
+            <div class="card h-100 card-hover p-4 border-top border-teal border-4 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="badge bg-teal text-white px-3 py-1.5 rounded-pill">Competitive Track</span>
+                    <i class="bi bi-award fs-2 text-teal"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Competitive Exam Preparation</h4>
+                <p class="text-muted mb-3">
+                    Calibrated practice for <strong>SSC, Railway, Banking, UPSC, and State Exams</strong> across shared test categories with timed simulation.
+                </p>
+                <div class="list-group list-group-flush mb-4">
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                        <span><i class="bi bi-calculator text-teal me-2"></i>Quantitative Aptitude</span>
+                        <span class="badge bg-light text-dark border">{{ subject_counts.get('Quantitative Aptitude', 8) }} Questions</span>
+                    </div>
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                        <span><i class="bi bi-lightbulb text-teal me-2"></i>Logical Reasoning</span>
+                        <span class="badge bg-light text-dark border">{{ subject_counts.get('Logical Reasoning', 8) }} Questions</span>
+                    </div>
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                        <span><i class="bi bi-book text-teal me-2"></i>English Language</span>
+                        <span class="badge bg-light text-dark border">{{ subject_counts.get('English Language', 8) }} Questions</span>
+                    </div>
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                        <span><i class="bi bi-globe text-teal me-2"></i>General Awareness</span>
+                        <span class="badge bg-light text-dark border">{{ subject_counts.get('General Awareness', 8) }} Questions</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('competitive_path') if current_user else url_for('login') }}" class="btn btn-teal text-white mt-auto">
+                    Explore Competitive Categories <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Features Grid -->
+<section id="features" class="container py-4 mb-5">
+    <div class="text-center mb-5">
+        <span class="text-uppercase text-primary fw-bold small">Full-Stack Intelligence</span>
+        <h2 class="fw-bold mt-1">Core System Capabilities</h2>
+        <p class="text-muted mx-auto" style="max-width: 600px;">
+            A complete suite of diagnostic, analytical, and educational tools engineered to accelerate your subject mastery.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <!-- 1. Calibrated Quiz Engine -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 card-hover p-4 shadow-sm">
+                <div class="stat-icon icon-blue mb-3">
+                    <i class="bi bi-stopwatch"></i>
+                </div>
+                <h5 class="fw-bold">Calibrated Quiz Engine</h5>
+                <p class="text-muted small mb-0">
+                    Multiple-choice questions with 4 options, timed tests for competitive aspirants, question review, and comprehensive explanations for every option.
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. Visual Progress Analytics -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 card-hover p-4 shadow-sm">
+                <div class="stat-icon icon-teal mb-3">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h5 class="fw-bold">Visual Progress Analytics</h5>
+                <p class="text-muted small mb-0">
+                    Interactive Chart.js visualizations track score timelines and topic mastery levels so you see exactly how your accuracy improves over time.
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. Predictive ML Risk Scoring -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 card-hover p-4 shadow-sm">
+                <div class="stat-icon icon-indigo mb-3">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h5 class="fw-bold">Predictive ML Risk Scoring</h5>
+                <p class="text-muted small mb-0">
+                    Scikit-Learn classification pipeline evaluates student behavior and flags learning risks early with clear baseline evaluation metrics.
+                </p>
+            </div>
+        </div>
+
+        <!-- 4. Weak Topic Detection -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 card-hover p-4 shadow-sm">
+                <div class="stat-icon icon-teal mb-3">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <h5 class="fw-bold">Weak Topic Detection</h5>
+                <p class="text-muted small mb-0">
+                    Identifies low-scoring concepts (&lt;60% accuracy) and produces an actionable priority-ranked revision plan with concrete study steps.
+                </p>
+            </div>
+        </div>
+
+        <!-- 5. AI Mentor Agent -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 card-hover p-4 shadow-sm">
+                <div class="stat-icon icon-blue mb-3">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <h5 class="fw-bold">AI Mentor Agent</h5>
+                <p class="text-muted small mb-0">
+                    Explains difficult concepts with beginner-friendly analogies, code snippets, formula shortcuts, and instant Q&amp;A—100% locally with zero paid APIs.
+                </p>
+            </div>
+        </div>
+
+        <!-- 6. Secure Data Persistence -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 card-hover p-4 shadow-sm">
+                <div class="stat-icon icon-indigo mb-3">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                <h5 class="fw-bold">Secure Data Persistence</h5>
+                <p class="text-muted small mb-0">
+                    SQLite relational database powered by Flask-SQLAlchemy with salted password hashing, clean session isolation, and strict access controls.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="container py-4 mb-5">
+    <div class="card bg-primary-navy text-white rounded-4 p-4 p-lg-5 shadow-lg border-0 position-relative overflow-hidden">
+        <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
+            <div class="col-lg-7">
+                <span class="badge bg-teal text-white mb-3 px-3 py-1.5 rounded-pill fw-bold shadow-sm">
+                    <i class="bi bi-mortarboard me-1"></i> About EduMentor AI
+                </span>
+                <h3 class="fw-bold text-white mb-3">Our Mission: Intelligent, High-Yield Learning for Every Student</h3>
+                <p class="text-light small mb-4 lh-base" style="font-size: 1rem; opacity: 0.95;">
+                    EduMentor AI was built to empower college undergraduates and competitive exam aspirants with a fully autonomous, data-driven learning ecosystem. We eliminate expensive subscription paywalls and paid third-party API dependencies by delivering local machine learning models, calibrated assessment engines, and instant concept mentoring right on your own machine.
+                </p>
+                <div class="d-flex flex-wrap gap-2 pt-1">
+                    <span class="badge bg-white bg-opacity-10 text-white border border-light border-opacity-25 px-3 py-2 rounded-pill">
+                        <i class="bi bi-cpu me-1 text-teal"></i> Autonomous Local Intelligence
+                    </span>
+                    <span class="badge bg-white bg-opacity-10 text-white border border-light border-opacity-25 px-3 py-2 rounded-pill">
+                        <i class="bi bi-person-check me-1 text-info"></i> Student-Centered Personalization
+                    </span>
+                    <span class="badge bg-white bg-opacity-10 text-white border border-light border-opacity-25 px-3 py-2 rounded-pill">
+                        <i class="bi bi-shield-check me-1 text-teal"></i> Zero Paid API Dependencies
+                    </span>
+                    <span class="badge bg-white bg-opacity-10 text-white border border-light border-opacity-25 px-3 py-2 rounded-pill">
+                        <i class="bi bi-briefcase me-1 text-info"></i> Exam &amp; Career Readiness
+                    </span>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center text-lg-end">
+                <div class="bg-white text-dark p-4 rounded-4 shadow-sm text-start">
+                    <h5 class="fw-bold mb-2">Ready to Boost Your Scores?</h5>
+                    <p class="text-muted small mb-4">
+                        Join college peers and competitive exam aspirants tracking their performance and mastering concepts with EduMentor AI.
+                    </p>
+                    {% if current_user %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-teal w-100 py-2.5 fw-bold shadow-sm">
+                        Go to My Dashboard <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-teal w-100 py-2.5 fw-bold shadow-sm">
+                        Create Free Account <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

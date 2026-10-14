@@ -1,0 +1,68 @@
+<div class="d-flex flex-column h-100 justify-content-between">
+    <div class="sidebar-links-wrapper">
+        <div class="sidebar-section-title">Navigation</div>
+        
+        <!-- 1. Home / Dashboard -->
+        <a href="{{ url_for('dashboard') }}" class="sidebar-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <span><i class="bi bi-speedometer2"></i> Home</span>
+        </a>
+
+        <!-- 2. AI Mentor -->
+        <a href="{{ url_for('mentor_view') }}" class="sidebar-nav-item {% if request.endpoint == 'mentor_view' %}active{% endif %}">
+            <span><i class="bi bi-robot text-teal"></i> AI Mentor</span>
+            {% if has_live_llm %}
+            <span class="badge bg-success-subtle text-success small border border-success" style="font-size: 0.65rem;">Live AI</span>
+            {% else %}
+            <span class="badge bg-success-subtle text-success small border border-success" style="font-size: 0.65rem;">Online</span>
+            {% endif %}
+        </a>
+
+        <!-- 3. Practice Hub -->
+        <a href="{{ url_for('practice_hub') }}" class="sidebar-nav-item {% if request.endpoint in ['practice_hub', 'college_path', 'competitive_path', 'start_quiz', 'take_quiz', 'quiz_result'] %}active{% endif %}">
+            <span><i class="bi bi-bullseye"></i> Practice Hub</span>
+            <span class="badge bg-teal text-white small px-1.5 py-0.5 rounded-pill font-monospace" style="font-size: 0.65rem;">MCQ</span>
+        </a>
+
+        <!-- 4. Study Planner -->
+        <a href="{{ url_for('planner_view') }}" class="sidebar-nav-item {% if 'planner' in request.endpoint %}active{% endif %}">
+            <span><i class="bi bi-calendar-check"></i> Study Planner</span>
+            {% if today_tasks_count and today_tasks_count > 0 %}
+            <span class="badge bg-warning text-dark small fw-bold">{{ today_tasks_count }}</span>
+            {% endif %}
+        </a>
+
+        <!-- 5. Notes -->
+        <a href="{{ url_for('notes_view') }}" class="sidebar-nav-item {% if 'note' in request.endpoint %}active{% endif %}">
+            <span><i class="bi bi-sticky"></i> Notes</span>
+        </a>
+
+        <!-- 6. Resources -->
+        <a href="{{ url_for('resources_catalog') }}" class="sidebar-nav-item {% if 'resource' in request.endpoint or 'pyq' in request.endpoint or 'bookmark' in request.endpoint %}active{% endif %}">
+            <span><i class="bi bi-journal-richtext"></i> Resources</span>
+            <span class="badge bg-secondary-subtle text-light small" style="font-size: 0.65rem;">Library</span>
+        </a>
+
+        <!-- 7. Profile -->
+        <a href="{{ url_for('profile_view') }}" class="sidebar-nav-item {% if request.endpoint in ['profile_view', 'settings_view'] %}active{% endif %}">
+            <span><i class="bi bi-person-badge"></i> Profile</span>
+        </a>
+    </div>
+
+    <!-- User status card at bottom -->
+    <div class="sidebar-footer-card p-2 rounded-3 mt-3 border border-secondary" style="background-color: rgba(30, 41, 59, 0.7);">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="small text-light fw-semibold text-truncate" style="max-width: 130px;">
+                <i class="bi bi-person-circle me-1 text-teal"></i>{{ current_user.full_name.split(' ')[0] if current_user else 'Student' }}
+            </span>
+            <span class="badge bg-warning text-dark fw-bold small">
+                🔥 {{ user_streak|default(0) }}d
+            </span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center small text-secondary">
+            <span class="text-capitalize" style="font-size: 0.75rem;">{{ current_user.learning_path if current_user else 'Track' }}</span>
+            <a href="{{ url_for('logout') }}" class="text-danger small text-decoration-none" title="Log Out">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

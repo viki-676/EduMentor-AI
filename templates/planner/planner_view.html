@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Study Planner - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="py-2">
+    <!-- Planner Hero & Summary Banner -->
+    <div class="p-4 rounded-4 text-white shadow-sm mb-4" style="background: linear-gradient(135deg, #091e3a 0%, #1e3a8a 50%, #0d9488 100%);">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <span class="badge bg-white text-dark fw-bold px-3 py-1.5 rounded-pill"><i class="bi bi-calendar-check-fill text-teal me-1"></i> Smart Study Planner</span>
+                    <span class="badge bg-dark bg-opacity-50 text-white border border-light border-opacity-25 px-3 py-1.5 rounded-pill">Target: {{ plan.target_exam_or_goal }}</span>
+                </div>
+                <h2 class="fw-bold text-white mb-2">{{ plan.title }}</h2>
+                <p class="mb-0 text-white-50 small">
+                    Personalized study cadence configured for <strong>{{ plan.daily_available_hours }} hrs/day</strong>. Spaced repetition intervals automatically focus on your diagnostic weak areas.
+                </p>
+            </div>
+            <div class="col-lg-5">
+                <div class="bg-dark bg-opacity-25 p-3 rounded-3 border border-light border-opacity-25 text-center">
+                    <div class="d-flex justify-content-between text-white small mb-1">
+                        <span>Overall Plan Completion</span>
+                        <strong>{{ completion_rate }}%</strong>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ completion_rate }}%;" aria-valuenow="{{ completion_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center text-white-50 mt-2 small">
+                        <span><i class="bi bi-clock me-1"></i> {{ plan.daily_available_hours }} hrs daily budget</span>
+                        <a href="{{ url_for('planner_wizard') }}" class="btn btn-sm btn-outline-light py-0 px-2 small">
+                            <i class="bi bi-arrow-repeat me-1"></i> Redesign Plan
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Rescheduling Banner (if any) -->
+    {% if overdue_tasks %}
+    <div class="alert alert-warning border-warning shadow-sm rounded-4 p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3" role="alert">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-exclamation-octagon-fill fs-3 text-warning"></i>
+            <div>
+                <strong class="d-block text-dark">You have {{ overdue_tasks|length }} overdue study task(s)!</strong>
+                <small class="text-secondary">Keep your momentum by shifting them forward to today without penalty.</small>
+            </div>
+        </div>
+        <form action="{{ url_for('planner_reschedule_overdue_all') }}" method="POST">
+            <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark text-nowrap px-3 shadow-sm">
+                <i class="bi bi-calendar2-plus me-1"></i> Reschedule All to Today
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0 text-dark"><i class="bi bi-check2-square text-teal me-2"></i>Today's Agenda ({{ today_tasks|length }} Tasks)</h4>
+        <button class="btn btn-teal btn-sm text-white fw-semibold" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+            <i class="bi bi-plus-lg me-1"></i> Add Custom Task
+        </button>
+    </div>
+
+    <!-- Today's Tasks Checklist -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+        <div class="card-body p-0">
+            {% if today_tasks %}
+            <div class="list-group list-group-flush">
+                {% for task in today_tasks %}
+                <div class="list-group-item p-3 task-row {% if task.is_completed %}task-completed bg-light{% endif %} d-flex align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <form action="{{ url_for('planner_task_toggle', task_id=task.id) }}" method="POST" class="d-inline m-0">
+                            <input type="checkbox" class="form-check-input fs-5 cursor-pointer" onchange="this.form.submit()" {% if task.is_completed %}checked{% endif %}>
+                        </form>
+                        <div>
+                            <span class="task-title fw-semibold text-dark d-block">{{ task.title }}</span>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="badge bg-secondary-subtle text-secondary small">{{ task.subject }}</span>
+                                <span class="badge {% if task.task_type == 'practice' %}bg-info-subtle text-info{% elif task.task_type == 'revision' %}bg-warning-subtle text-warning{% elif task.task_type == 'mock' %}bg-danger-subtle text-danger{% else %}bg-primary-subtle text-primary{% endif %} small">
+                                    {{ task.task_type|capitalize }}
+                                </span>
+                                <small class="text-muted"><i class="bi bi-stopwatch me-1"></i>{{ task.duration_minutes }} mins</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if not task.is_completed %}
+                        <a href="{{ url_for('quiz_view', subject=task.subject) }}" class="btn btn-sm btn-outline-teal px-3 py-1 text-nowrap">
+                            <i class="bi bi-play-circle me-1"></i> Start
+                        </a>
+                        {% else %}
+                        <span class="badge bg-success text-white py-1.5 px-2.5 rounded-pill small"><i class="bi bi-check-lg me-1"></i>Done</span>
+                        {% endif %}
+                        <form action="{{ url_for('planner_task_delete', task_id=task.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this task?');">
+                            <button type="submit" class="btn btn-link text-danger p-0" title="Delete Task">
+                                <i class="bi bi-trash small"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-4 text-center">
+                <i class="bi bi-check-circle text-success fs-1"></i>
+                <h5 class="fw-bold mt-2 mb-1">All Caught Up for Today!</h5>
+                <p class="text-muted small mb-3">No pending tasks scheduled for today. Take a quick quiz or read resource notes.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('practice_hub') }}" class="btn btn-teal btn-sm text-white">Go to Practice Hub</a>
+                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal">Add Custom Task</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 7-Day Weekly Schedule Overview -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar3 me-2 text-teal"></i>7-Day Study Schedule</h5>
+        {% if week_tasks %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Task Details</th>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in week_tasks %}
+                    <tr class="{% if task.is_completed %}table-light text-muted{% endif %}">
+                        <td class="font-monospace small fw-bold">
+                            {{ task.scheduled_date.strftime('%a, %b %d') }}
+                        </td>
+                        <td>
+                            <strong class="{% if task.is_completed %}text-decoration-line-through text-muted{% else %}text-dark{% endif %}">
+                                {{ task.title }}
+                            </strong>
+                        </td>
+                        <td><span class="badge bg-secondary-subtle text-secondary small">{{ task.subject }}</span></td>
+                        <td>
+                            <span class="badge {% if task.task_type == 'practice' %}bg-info-subtle text-info{% elif task.task_type == 'revision' %}bg-warning-subtle text-warning{% else %}bg-primary-subtle text-primary{% endif %} small">
+                                {{ task.task_type|capitalize }}
+                            </span>
+                        </td>
+                        <td class="small">{{ task.duration_minutes }} mins</td>
+                        <td>
+                            {% if task.is_completed %}
+                            <span class="badge bg-success-subtle text-success small">Completed</span>
+                            {% elif task.is_overdue %}
+                            <span class="badge bg-warning-subtle text-warning small">Overdue</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary small">Scheduled</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{{ url_for('planner_task_toggle', task_id=task.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-link p-0 text-decoration-none {% if task.is_completed %}text-muted{% else %}text-success{% endif %}" title="Toggle Complete">
+                                    <i class="bi {% if task.is_completed %}bi-arrow-counterclockwise{% else %}bi-check-circle{% endif %}"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted small mb-0">No upcoming tasks scheduled for this week. Use the wizard to generate an automated schedule!</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal: Add Custom Task -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark" id="addTaskModalLabel"><i class="bi bi-calendar-plus text-teal me-2"></i>Add Study Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('planner_task_create') }}" method="POST">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Task Title *</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Solve 20 Reasoning Puzzles" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Subject</label>
+                            <input type="text" name="subject" class="form-control" placeholder="e.g. Quantitative Aptitude" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Duration (Mins)</label>
+                            <input type="number" name="duration_minutes" class="form-control" value="45" min="10" max="240" step="5" required>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Scheduled Date *</label>
+                            <input type="date" name="scheduled_date" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Task Type</label>
+                            <select name="task_type" class="form-select">
+                                <option value="theory">Concept Theory</option>
+                                <option value="practice" selected>Practice &amp; MCQs</option>
+                                <option value="revision">Spaced Revision</option>
+                                <option value="mock">Full Mock Drill</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-teal btn-sm text-white fw-semibold">Add to Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

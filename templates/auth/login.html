@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - EduMentor AI{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-page-wrapper {
+        min-height: calc(100vh - 160px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 2.5rem 1rem;
+        background: radial-gradient(circle at 15% 20%, rgba(13, 148, 136, 0.08) 0%, transparent 45%),
+                    radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.08) 0%, transparent 45%);
+    }
+
+    .auth-card-container {
+        width: 100%;
+        max-width: 480px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .auth-card {
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .auth-card:hover {
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.16);
+    }
+
+    .auth-header-gradient {
+        background: linear-gradient(135deg, #091e3a 0%, #1e293b 60%, #0d9488 100%);
+        padding: 2.5rem 2rem 2rem;
+        text-align: center;
+        color: #ffffff;
+        position: relative;
+    }
+
+    .auth-logo-badge {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(255, 255, 255, 0.25);
+        border-radius: 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: #2dd4bf;
+        font-size: 1.8rem;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .auth-body {
+        padding: 2.25rem 2rem 2rem;
+    }
+
+    .form-floating-custom {
+        position: relative;
+    }
+
+    .input-icon-prefix {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
+        font-size: 1.1rem;
+        z-index: 4;
+        pointer-events: none;
+    }
+
+    .form-control-with-icon {
+        padding-left: 2.75rem !important;
+        border-radius: 0.75rem;
+        border: 1.5px solid #cbd5e1;
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .form-control-with-icon:focus {
+        border-color: #0d9488;
+        box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.15);
+    }
+
+    .btn-auth-submit {
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.85rem 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .btn-auth-submit:hover {
+        background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+        box-shadow: 0 6px 18px rgba(13, 148, 136, 0.4);
+        transform: translateY(-1px);
+        color: #ffffff;
+    }
+
+    .btn-auth-submit:active {
+        transform: translateY(0);
+    }
+
+    /* Dark Mode Theme Support */
+    [data-bs-theme="dark"] .auth-card {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+        box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    [data-bs-theme="dark"] .form-control-with-icon {
+        background-color: #0f172a;
+        border-color: #334155;
+        color: #f8fafc;
+    }
+
+    [data-bs-theme="dark"] .form-control-with-icon:focus {
+        background-color: #0f172a;
+        border-color: #2dd4bf;
+        color: #ffffff;
+    }
+
+    [data-bs-theme="dark"] .input-icon-prefix {
+        color: #94a3b8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-wrapper">
+    <div class="auth-card-container">
+        <div class="auth-card">
+            <!-- Header Banner with EduMentor AI Cap Logo -->
+            <div class="auth-header-gradient">
+                <div class="auth-logo-badge">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <h3 class="fw-bold mb-1 tracking-tight text-white">Welcome Back</h3>
+                <p class="small text-white-50 mb-0">Sign in to your EduMentor AI student account</p>
+            </div>
+
+            <!-- Form Body -->
+            <div class="auth-body">
+                <form method="POST" action="{{ url_for('login') }}" id="loginForm" novalidate>
+                    <!-- Username or Email Field -->
+                    <div class="mb-3">
+                        <label for="username_or_email" class="form-label fw-semibold small text-dark d-flex justify-content-between">
+                            <span>Username or Email</span>
+                        </label>
+                        <div class="position-relative">
+                            <i class="bi bi-person-fill input-icon-prefix"></i>
+                            <input type="text" 
+                                   class="form-control form-control-with-icon py-2.5" 
+                                   id="username_or_email" 
+                                   name="username_or_email" 
+                                   value="{{ username_or_email or '' }}" 
+                                   placeholder="e.g. rahul_sharma or student@college.edu" 
+                                   required 
+                                   autofocus
+                                   autocomplete="username">
+                        </div>
+                    </div>
+
+                    <!-- Password Field with Show/Hide -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="password" class="form-label fw-semibold small text-dark mb-0">Password</label>
+                            <a href="{{ url_for('forgot_password') }}" class="small text-teal text-decoration-none fw-semibold" id="forgotPasswordLink">
+                                Forgot password?
+                            </a>
+                        </div>
+                        <div class="input-group">
+                            <div class="position-relative flex-grow-1">
+                                <i class="bi bi-shield-lock-fill input-icon-prefix"></i>
+                                <input type="password" 
+                                       class="form-control form-control-with-icon py-2.5 rounded-end-0" 
+                                       id="password" 
+                                       name="password" 
+                                       placeholder="Enter your secure password" 
+                                       required
+                                       autocomplete="current-password">
+                            </div>
+                            <button class="btn btn-outline-secondary toggle-password-btn px-3 border-start-0 rounded-end-3" 
+                                    type="button" 
+                                    data-target="password" 
+                                    title="Show/Hide Password" 
+                                    aria-label="Toggle password visibility">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me Option -->
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="remember" id="remember" value="on">
+                            <label class="form-check-label small text-secondary" for="remember">
+                                Keep me signed in
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button with Spinner -->
+                    <button type="submit" class="btn btn-auth-submit w-100 mb-3 d-flex align-items-center justify-content-center gap-2" id="loginSubmitBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="loginSpinner" role="status" aria-hidden="true"></span>
+                        <i class="bi bi-box-arrow-in-right" id="loginBtnIcon"></i>
+                        <span id="loginBtnText">Sign In to Dashboard</span>
+                    </button>
+
+                    <!-- Registration Alternative Link -->
+                    <div class="text-center pt-3 border-top">
+                        <p class="small text-secondary mb-0">
+                            New to EduMentor AI? 
+                            <a href="{{ url_for('register') }}" class="text-teal fw-bold text-decoration-none ms-1">
+                                Create Free Account <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security / Offline Status Micro-Pill -->
+        <div class="text-center mt-3">
+            <span class="badge bg-light text-secondary border px-3 py-1.5 rounded-pill small fw-normal shadow-sm">
+                <i class="bi bi-shield-check text-teal me-1"></i> Autonomous Local AI &bull; End-to-End Privacy
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const loginForm = document.getElementById('loginForm');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const loginBtnIcon = document.getElementById('loginBtnIcon');
+        const loginBtnText = document.getElementById('loginBtnText');
+
+        if (loginForm && loginSubmitBtn) {
+            loginForm.addEventListener('submit', function (e) {
+                const identifier = document.getElementById('username_or_email').value.trim();
+                const pass = document.getElementById('password').value;
+
+                if (!identifier || !pass) {
+                    return; // Let browser HTML5 validation show
+                }
+
+                if (loginSpinner && loginBtnIcon && loginBtnText) {
+                    loginSpinner.classList.remove('d-none');
+                    loginBtnIcon.classList.add('d-none');
+                    loginBtnText.textContent = 'Verifying credentials...';
+                    loginSubmitBtn.disabled = true;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

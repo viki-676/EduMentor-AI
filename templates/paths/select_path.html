@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Change Learning Path - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-semibold mb-2">Student Preferences</span>
+                    <h3 class="fw-bold">Switch Your Learning Track</h3>
+                    <p class="text-muted small">Select your current focus to customize quiz recommendations and mentor advice.</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('update_path') }}">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="card card-hover p-4 h-100 border-2 cursor-pointer text-center position-relative" for="optCollege">
+                                <input class="form-check-input position-absolute top-0 end-0 m-3" type="radio" name="learning_path" id="optCollege" value="college" {% if user.learning_path == 'college' %}checked{% endif %}>
+                                <div class="stat-icon icon-blue mx-auto mb-3">
+                                    <i class="bi bi-laptop"></i>
+                                </div>
+                                <h5 class="fw-bold">Path A: College Learning</h5>
+                                <p class="text-muted small mb-0">Master Python, Data Structures, and DBMS for semester exams and technical campus placements.</p>
+                            </label>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="card card-hover p-4 h-100 border-2 cursor-pointer text-center position-relative" for="optCompetitive">
+                                <input class="form-check-input position-absolute top-0 end-0 m-3" type="radio" name="learning_path" id="optCompetitive" value="competitive" {% if user.learning_path == 'competitive' %}checked{% endif %}>
+                                <div class="stat-icon icon-teal mx-auto mb-3">
+                                    <i class="bi bi-award"></i>
+                                </div>
+                                <h5 class="fw-bold">Path B: Competitive Prep</h5>
+                                <p class="text-muted small mb-0">Prepare for SSC, Banking, Railway, UPSC, and State exams with Quantitative Aptitude, Reasoning, and GA.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="degreeSection" class="mb-4">
+                        <label for="degree_or_stream" class="form-label fw-semibold">Target College Degree / Stream</label>
+                        <select class="form-select" id="degree_or_stream" name="degree_or_stream">
+                            <option value="B.Tech Computer Science" {% if user.degree_or_stream == 'B.Tech Computer Science' %}selected{% endif %}>B.Tech Computer Science / IT</option>
+                            <option value="BCA" {% if user.degree_or_stream == 'BCA' %}selected{% endif %}>BCA (Bachelor of Computer Applications)</option>
+                            <option value="B.Sc. Computer Science" {% if user.degree_or_stream == 'B.Sc. Computer Science' %}selected{% endif %}>B.Sc. Computer Science</option>
+                            <option value="B.Tech (Other Stream)" {% if user.degree_or_stream == 'B.Tech (Other Stream)' %}selected{% endif %}>B.Tech Other Streams</option>
+                            <option value="Other Degree" {% if user.degree_or_stream == 'Other Degree' %}selected{% endif %}>Other Degree</option>
+                        </select>
+                    </div>
+
+                    <div id="examSection" class="mb-4 d-none">
+                        <label for="target_exam" class="form-label fw-semibold">Target Competitive Exam</label>
+                        <select class="form-select" id="target_exam" name="target_exam">
+                            {% for exam_code, exam_info in competitive_exams.items() %}
+                            <option value="{{ exam_code }}" {% if user.target_exam == exam_code %}selected{% endif %}>{{ exam_code }} - {{ exam_info.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-teal px-4 fw-bold">Save & Switch Track</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const optCollege = document.getElementById('optCollege');
+        const optCompetitive = document.getElementById('optCompetitive');
+        const degreeSection = document.getElementById('degreeSection');
+        const examSection = document.getElementById('examSection');
+
+        function updateVisibility() {
+            if (optCollege.checked) {
+                degreeSection.classList.remove('d-none');
+                examSection.classList.add('d-none');
+            } else {
+                degreeSection.classList.add('d-none');
+                examSection.classList.remove('d-none');
+            }
+        }
+
+        optCollege.addEventListener('change', updateVisibility);
+        optCompetitive.addEventListener('change', updateVisibility);
+        updateVisibility();
+    });
+</script>
+{% endblock %}

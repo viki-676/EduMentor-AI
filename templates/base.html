@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="{{ current_user.theme_preference if current_user and current_user.theme_preference else 'light' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EduMentor AI - Personalized Learning & Exam Prep{% endblock %}</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Chart.js 4.4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+        <div class="container-fluid px-3 px-lg-4">
+            <div class="d-flex align-items-center">
+                {% if current_user and request.endpoint != 'index' %}
+                <button class="btn btn-outline-secondary btn-sm d-lg-none me-2 text-white border-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebarOffcanvas" aria-label="Toggle Navigation">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                {% endif %}
+                <a class="navbar-brand me-3" href="{{ url_for('index') }}">
+                    <i class="bi bi-mortarboard-fill text-info"></i>
+                    <span>EduMentor <span class="text-info">AI</span></span>
+                </a>
+            </div>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-2">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#paths">Learning Paths</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'resource' in request.endpoint %}active{% endif %}" href="{{ url_for('resources_catalog') if current_user else url_for('login') }}">Resources</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#about">About</a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Light / Dark Theme Toggle Button -->
+                    <button class="btn btn-outline-secondary btn-sm px-2.5 py-1 text-white border-secondary rounded-pill d-flex align-items-center gap-1" id="themeToggleBtn" type="button" title="Toggle Light/Dark Theme" aria-label="Toggle Light/Dark Theme">
+                        <i class="bi bi-moon-stars-fill" id="themeToggleIcon"></i>
+                    </button>
+
+                    {% if current_user %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-teal btn-sm px-3 d-none d-md-inline-flex align-items-center gap-1">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i>
+                            <span>{{ current_user.full_name }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuButton">
+                            <li><h6 class="dropdown-header">Signed in as @{{ current_user.username }}</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>My Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('mentor_view') }}"><i class="bi bi-robot me-2 text-teal"></i>AI Mentor</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile_view') }}"><i class="bi bi-person-bounding-box me-2"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('select_path') }}"><i class="bi bi-arrow-repeat me-2"></i>Change Path</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings_view') }}"><i class="bi bi-gear me-2"></i>Settings &amp; Theme</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Log Out</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-sm px-3">Log In</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-teal btn-sm px-3 shadow-sm">Get Started Free</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="{% if current_user and request.endpoint != 'index' %}app-layout{% else %}public-layout{% endif %}">
+        {% if current_user and request.endpoint != 'index' %}
+        <!-- Desktop Sidebar -->
+        <aside class="app-sidebar d-none d-lg-flex">
+            {% include "components/sidebar_nav.html" %}
+        </aside>
+
+        <!-- Offcanvas Mobile Sidebar -->
+        <div class="offcanvas offcanvas-start offcanvas-sidebar" tabindex="-1" id="appSidebarOffcanvas" aria-labelledby="appSidebarOffcanvasLabel">
+            <div class="offcanvas-header border-bottom border-secondary">
+                <h5 class="offcanvas-title text-white fw-bold d-flex align-items-center gap-2" id="appSidebarOffcanvasLabel">
+                    <i class="bi bi-mortarboard-fill text-info"></i> EduMentor AI
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-2">
+                {% include "components/sidebar_nav.html" %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Main Workspace Area -->
+        <main class="{% if current_user and request.endpoint != 'index' %}app-content{% else %}flex-grow-1{% endif %}">
+            <div class="{% if current_user and request.endpoint != 'index' %}container-fluid px-2 px-md-4 py-3{% else %}{% if request.endpoint == 'index' %}w-100 p-0{% else %}container mt-3{% endif %}{% endif %}">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="{% if request.endpoint == 'index' %}container pt-3{% endif %}">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                                <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Global Footer -->
+    <footer>
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4">
+                    <h5 class="text-white fw-bold d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-mortarboard-fill text-info"></i> EduMentor AI
+                    </h5>
+                    <p class="small text-light footer-desc mb-0">
+                        An AI-Powered Personalized Learning and Competitive Exam Preparation System. Dedicated to accessible, high-yield practice and intelligent analytics for college students and aspirants.
+                    </p>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2 ms-lg-auto">
+                    <h6 class="text-white fw-semibold mb-3">College Learning</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="{{ url_for('college_path') if current_user else url_for('login') }}">Python Programming</a></li>
+                        <li class="mb-2"><a href="{{ url_for('college_path') if current_user else url_for('login') }}">Data Structures</a></li>
+                        <li class="mb-2"><a href="{{ url_for('college_path') if current_user else url_for('login') }}">DBMS & SQL</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-md-3 col-lg-3">
+                    <h6 class="text-white fw-semibold mb-3">Competitive Prep</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="{{ url_for('competitive_path') if current_user else url_for('login') }}">Quantitative Aptitude</a></li>
+                        <li class="mb-2"><a href="{{ url_for('competitive_path') if current_user else url_for('login') }}">Logical Reasoning</a></li>
+                        <li class="mb-2"><a href="{{ url_for('competitive_path') if current_user else url_for('login') }}">English Language</a></li>
+                        <li class="mb-2"><a href="{{ url_for('competitive_path') if current_user else url_for('login') }}">General Awareness</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <h6 class="text-white fw-semibold mb-3">Quick Links</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="{{ url_for('index') }}">Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('index') }}#paths">Learning Paths</a></li>
+                        <li class="mb-2"><a href="{{ url_for('index') }}#features">Features</a></li>
+                        <li class="mb-2"><a href="{{ url_for('resources_catalog') if current_user else url_for('login') }}">Resources</a></li>
+                        <li class="mb-2"><a href="{{ url_for('index') }}#about">About</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top pt-3 d-flex flex-column flex-md-row justify-content-between align-items-center footer-bottom-text small" style="border-color: rgba(255, 255, 255, 0.25) !important;">
+                <span class="text-white fw-medium">&copy; 2026 EduMentor AI. Personalized Learning &amp; Competitive Exam Preparation.</span>
+                <span class="mt-2 mt-md-0 text-light fw-medium">Autonomous Local Intelligence • Zero Paid API Dependency</span>
+            </div>
+        </div>
+    </footer>
+
+    {% if current_user %}
+        {% include "quiz/config_modal.html" %}
+    {% endif %}
+
+    <!-- Bootstrap 5 Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+

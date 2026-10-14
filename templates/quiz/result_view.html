@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Results - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Score Summary Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 text-center bg-white">
+        <div class="mb-3">
+            <span class="badge {% if attempt.percentage >= 75 %}bg-success{% elif attempt.percentage >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %} px-3 py-2 rounded-pill fs-6 fw-bold">
+                {% if attempt.percentage >= 75 %}
+                    <i class="bi bi-trophy-fill me-1"></i> Excellent Concept Mastery
+                {% elif attempt.percentage >= 50 %}
+                    <i class="bi bi-check-circle-fill me-1"></i> Good Attempt — Revision Recommended
+                {% else %}
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Foundational Review Required
+                {% endif %}
+            </span>
+        </div>
+
+        <h1 class="display-3 fw-black text-dark mb-1">
+            {{ attempt.score }} <span class="fs-4 text-secondary">/ {{ attempt.total_questions }}</span>
+        </h1>
+        <h4 class="fw-bold text-primary mb-3">{{ attempt.percentage }}% Accuracy</h4>
+
+        <div class="d-flex justify-content-center flex-wrap gap-4 text-muted small mb-4">
+            <div>
+                <i class="bi bi-book text-primary me-1"></i>
+                <strong>Subject:</strong> {{ attempt.subject_or_category }}
+            </div>
+            {% if attempt.exam_name %}
+            <div>
+                <i class="bi bi-award text-teal me-1"></i>
+                <strong>Exam:</strong> {{ attempt.exam_name }}
+            </div>
+            {% endif %}
+            <div>
+                <i class="bi bi-stopwatch text-warning me-1"></i>
+                <strong>Time Taken:</strong> {{ attempt.time_taken_seconds }} seconds
+            </div>
+            <div>
+                <i class="bi bi-calendar-event text-secondary me-1"></i>
+                <strong>Submitted:</strong> {{ attempt.created_at.strftime('%d %b %Y, %I:%M %p') }}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center flex-wrap gap-2">
+            <a href="{{ url_for('quiz_view', path=attempt.learning_path, subject=attempt.subject_or_category, exam=attempt.exam_name) }}" class="btn btn-outline-primary px-4">
+                <i class="bi bi-arrow-clockwise me-1"></i> Retake Practice Quiz
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-teal px-4 fw-semibold text-white">
+                <i class="bi bi-speedometer2 me-1"></i> View Student Dashboard
+            </a>
+            <a href="{{ url_for('mentor_view') }}" class="btn btn-primary-navy px-4 fw-semibold">
+                <i class="bi bi-robot me-1"></i> Ask AI Mentor
+            </a>
+        </div>
+    </div>
+
+    <!-- Suggested Next Action Alert -->
+    {% if recommendations and recommendations.suggested_next_quiz %}
+    <div class="alert alert-light border shadow-sm rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="stat-icon icon-teal flex-shrink-0">
+                <i class="bi bi-compass"></i>
+            </div>
+            <div>
+                <h5 class="fw-bold mb-1">Personalized Next Step</h5>
+                <p class="text-secondary small mb-2">
+                    {{ recommendations.suggested_next_quiz.reason }}
+                </p>
+                <span class="badge bg-primary-subtle text-primary border">Target Topic: {{ recommendations.suggested_next_quiz.topic }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Detailed Question Review Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-dark mb-0">Detailed Solution & Answer Key</h4>
+        <span class="text-muted small">{{ breakdown|length }} Questions Analyzed</span>
+    </div>
+
+    <!-- Question Solution Cards -->
+    {% for item in breakdown %}
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-start border-4 {% if item.is_correct %}border-success{% else %}border-danger{% endif %}">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-light text-secondary border">Question {{ loop.index }}</span>
+            <div class="d-flex gap-2">
+                <span class="badge bg-light text-dark border">{{ item.topic }}</span>
+                {% if item.is_correct %}
+                    <span class="badge bg-success text-white"><i class="bi bi-check-lg me-1"></i>Correct</span>
+                {% else %}
+                    <span class="badge bg-danger text-white"><i class="bi bi-x-lg me-1"></i>Incorrect</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <h5 class="fw-bold mb-3 text-dark lh-base">{{ item.question_text }}</h5>
+
+        <!-- Options Status List -->
+        <div class="row g-2 mb-3">
+            {% for opt_key, opt_text in item.options.items() %}
+            <div class="col-md-6">
+                <div class="p-3 rounded-3 border d-flex align-items-center justify-content-between
+                    {% if opt_key == item.correct_option %}
+                        bg-success-subtle border-success text-success fw-bold
+                    {% elif opt_key == item.selected_option and not item.is_correct %}
+                        bg-danger-subtle border-danger text-danger fw-bold
+                    {% else %}
+                        bg-light text-secondary
+                    {% endif %}">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge {% if opt_key == item.correct_option %}bg-success{% elif opt_key == item.selected_option %}bg-danger{% else %}bg-secondary{% endif %}">
+                            {{ opt_key }}
+                        </span>
+                        <span>{{ opt_text }}</span>
+                    </div>
+
+                    {% if opt_key == item.correct_option %}
+                        <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Correct Answer</span>
+                    {% elif opt_key == item.selected_option %}
+                        <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>Your Answer</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Explanation Box -->
+        <div class="p-3 rounded-3 bg-light border">
+            <h6 class="fw-bold text-primary mb-1 d-flex align-items-center gap-1">
+                <i class="bi bi-info-circle-fill"></i> Conceptual Explanation:
+            </h6>
+            <p class="small text-secondary mb-0 lh-base">
+                {{ item.explanation }}
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

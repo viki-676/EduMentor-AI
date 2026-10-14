@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block title %}Create Free Account - EduMentor AI{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-page-wrapper {
+        min-height: calc(100vh - 160px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 2.5rem 1rem;
+        background: radial-gradient(circle at 15% 20%, rgba(13, 148, 136, 0.08) 0%, transparent 45%),
+                    radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.08) 0%, transparent 45%);
+    }
+
+    .auth-card-container {
+        width: 100%;
+        max-width: 600px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .auth-card {
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .auth-card:hover {
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.16);
+    }
+
+    .auth-header-gradient {
+        background: linear-gradient(135deg, #091e3a 0%, #1e293b 60%, #0d9488 100%);
+        padding: 2.5rem 2rem 2rem;
+        text-align: center;
+        color: #ffffff;
+        position: relative;
+    }
+
+    .auth-logo-badge {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(255, 255, 255, 0.25);
+        border-radius: 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: #2dd4bf;
+        font-size: 1.8rem;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .auth-body {
+        padding: 2.25rem 2rem 2rem;
+    }
+
+    .input-icon-prefix {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
+        font-size: 1.1rem;
+        z-index: 4;
+        pointer-events: none;
+    }
+
+    .form-control-with-icon {
+        padding-left: 2.75rem !important;
+        border-radius: 0.75rem;
+        border: 1.5px solid #cbd5e1;
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .form-control-with-icon:focus {
+        border-color: #0d9488;
+        box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.15);
+    }
+
+    .btn-auth-submit {
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.85rem 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .btn-auth-submit:hover {
+        background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+        box-shadow: 0 6px 18px rgba(13, 148, 136, 0.4);
+        transform: translateY(-1px);
+        color: #ffffff;
+    }
+
+    .track-card-select {
+        border: 1.5px solid #cbd5e1;
+        border-radius: 0.85rem;
+        padding: 0.85rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-check:checked + .track-card-select {
+        border-color: #0d9488;
+        background-color: rgba(13, 148, 136, 0.08);
+        color: #0f766e;
+    }
+
+    /* Dark Mode Theme Support */
+    [data-bs-theme="dark"] .auth-card {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+        box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    [data-bs-theme="dark"] .form-control-with-icon,
+    [data-bs-theme="dark"] .form-select {
+        background-color: #0f172a;
+        border-color: #334155;
+        color: #f8fafc;
+    }
+
+    [data-bs-theme="dark"] .form-control-with-icon:focus,
+    [data-bs-theme="dark"] .form-select:focus {
+        background-color: #0f172a;
+        border-color: #2dd4bf;
+        color: #ffffff;
+    }
+
+    [data-bs-theme="dark"] .input-icon-prefix {
+        color: #94a3b8;
+    }
+
+    [data-bs-theme="dark"] .track-card-select {
+        border-color: #334155;
+        background-color: #0f172a;
+        color: #e2e8f0;
+    }
+
+    [data-bs-theme="dark"] .btn-check:checked + .track-card-select {
+        border-color: #2dd4bf;
+        background-color: rgba(45, 212, 191, 0.12);
+        color: #2dd4bf;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-wrapper">
+    <div class="auth-card-container">
+        <div class="auth-card">
+            <!-- Header Banner -->
+            <div class="auth-header-gradient">
+                <div class="auth-logo-badge">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <h3 class="fw-bold mb-1 tracking-tight text-white">Create Student Account</h3>
+                <p class="small text-white-50 mb-0">Join EduMentor AI for personalized practice and AI mentorship</p>
+            </div>
+
+            <div class="auth-body">
+                <form method="POST" action="{{ url_for('register') }}" id="registerForm" novalidate>
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label fw-semibold small text-dark">Full Name</label>
+                        <div class="position-relative">
+                            <i class="bi bi-person-fill input-icon-prefix"></i>
+                            <input type="text" 
+                                   class="form-control form-control-with-icon py-2.5" 
+                                   id="full_name" 
+                                   name="full_name" 
+                                   value="{{ form.full_name if form else '' }}" 
+                                   placeholder="e.g. Rahul Sharma" 
+                                   required 
+                                   autofocus>
+                        </div>
+                    </div>
+
+                    <!-- Username & Email (Row) -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label for="username" class="form-label fw-semibold small text-dark">Username</label>
+                            <div class="position-relative">
+                                <i class="bi bi-at input-icon-prefix fs-5"></i>
+                                <input type="text" 
+                                       class="form-control form-control-with-icon py-2.5" 
+                                       id="username" 
+                                       name="username" 
+                                       value="{{ form.username if form else '' }}" 
+                                       placeholder="rahul_sharma" 
+                                       required 
+                                       minlength="3">
+                            </div>
+                            <div class="form-text small" style="font-size: 0.75rem;">Min. 3 characters</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="email" class="form-label fw-semibold small text-dark">Email Address</label>
+                            <div class="position-relative">
+                                <i class="bi bi-envelope-fill input-icon-prefix"></i>
+                                <input type="email" 
+                                       class="form-control form-control-with-icon py-2.5" 
+                                       id="email" 
+                                       name="email" 
+                                       value="{{ form.email if form else '' }}" 
+                                       placeholder="rahul@example.com" 
+                                       required>
+                            </div>
+                            <div class="form-text small" style="font-size: 0.75rem;">Used for login &amp; recovery</div>
+                        </div>
+                    </div>
+
+                    <!-- Password & Confirm Password (Row) -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label for="password" class="form-label fw-semibold small text-dark">Password</label>
+                            <div class="input-group">
+                                <div class="position-relative flex-grow-1">
+                                    <i class="bi bi-shield-lock-fill input-icon-prefix"></i>
+                                    <input type="password" 
+                                           class="form-control form-control-with-icon py-2.5 rounded-end-0" 
+                                           id="password" 
+                                           name="password" 
+                                           placeholder="••••••••" 
+                                           required 
+                                           minlength="6">
+                                </div>
+                                <button class="btn btn-outline-secondary toggle-password-btn px-2.5 border-start-0 rounded-end-3" 
+                                        type="button" 
+                                        data-target="password" 
+                                        title="Show/Hide Password" 
+                                        aria-label="Toggle password visibility">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text small" style="font-size: 0.75rem;">At least 6 characters</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="confirm_password" class="form-label fw-semibold small text-dark">Confirm Password</label>
+                            <div class="input-group">
+                                <div class="position-relative flex-grow-1">
+                                    <i class="bi bi-shield-check input-icon-prefix"></i>
+                                    <input type="password" 
+                                           class="form-control form-control-with-icon py-2.5 rounded-end-0" 
+                                           id="confirm_password" 
+                                           name="confirm_password" 
+                                           placeholder="••••••••" 
+                                           required 
+                                           minlength="6">
+                                </div>
+                                <button class="btn btn-outline-secondary toggle-password-btn px-2.5 border-start-0 rounded-end-3" 
+                                        type="button" 
+                                        data-target="confirm_password" 
+                                        title="Show/Hide Password" 
+                                        aria-label="Toggle password visibility">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div id="passwordMatchMessage" class="form-text small" style="font-size: 0.75rem;">Must match password</div>
+                        </div>
+                    </div>
+
+                    <!-- Learning Path Selector -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark d-block mb-2">Primary Learning Track</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="learning_path" id="pathCollege" value="college" {% if not form or form.learning_path != 'competitive' %}checked{% endif %}>
+                                <label class="track-card-select w-100 d-flex flex-column align-items-center text-center" for="pathCollege">
+                                    <i class="bi bi-laptop fs-4 mb-1 text-primary"></i>
+                                    <span class="fw-bold small">College Learning</span>
+                                    <small class="text-secondary opacity-75" style="font-size: 0.72rem;">B.Tech, BCA, B.Sc.</small>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="learning_path" id="pathCompetitive" value="competitive" {% if form and form.learning_path == 'competitive' %}checked{% endif %}>
+                                <label class="track-card-select w-100 d-flex flex-column align-items-center text-center" for="pathCompetitive">
+                                    <i class="bi bi-award fs-4 mb-1 text-teal"></i>
+                                    <span class="fw-bold small">Competitive Prep</span>
+                                    <small class="text-secondary opacity-75" style="font-size: 0.72rem;">SSC, Railway, Banking</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- College Specific Field -->
+                    <div id="collegeFields" class="mb-4 {% if form and form.learning_path == 'competitive' %}d-none{% endif %}">
+                        <label for="degree_or_stream" class="form-label fw-semibold small text-dark">Degree &amp; Engineering Stream</label>
+                        <select class="form-select py-2.5 rounded-3" id="degree_or_stream" name="degree_or_stream">
+                            <option value="B.Tech Computer Science">B.Tech - Computer Science &amp; Engineering</option>
+                            <option value="BCA">BCA (Bachelor of Computer Applications)</option>
+                            <option value="B.Sc. Computer Science">B.Sc. Computer Science / IT</option>
+                            <option value="B.Tech (Other Stream)">B.Tech - Electronics / Electrical / Mech</option>
+                            <option value="Other Degree">Other University Degree</option>
+                        </select>
+                    </div>
+
+                    <!-- Competitive Specific Field -->
+                    <div id="competitiveFields" class="mb-4 {% if not form or form.learning_path != 'competitive' %}d-none{% endif %}">
+                        <label for="target_exam" class="form-label fw-semibold small text-dark">Primary Target Examination</label>
+                        <select class="form-select py-2.5 rounded-3" id="target_exam" name="target_exam">
+                            <option value="SSC">Staff Selection Commission (SSC CGL / CHSL)</option>
+                            <option value="Banking">Banking Exams (IBPS / SBI PO &amp; Clerk)</option>
+                            <option value="Railway">Indian Railways (RRB NTPC &amp; Group D)</option>
+                            <option value="UPSC">UPSC Civil Services (Aptitude &amp; GS)</option>
+                            <option value="State-level">State Public Service Commission (State PSC)</option>
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-auth-submit w-100 mb-3 d-flex align-items-center justify-content-center gap-2" id="registerSubmitBtn">
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Register &amp; Start Learning</span>
+                    </button>
+
+                    <!-- Alternative Link to Login -->
+                    <div class="text-center pt-3 border-top">
+                        <p class="small text-secondary mb-0">
+                            Already have an EduMentor account? 
+                            <a href="{{ url_for('login') }}" class="text-teal fw-bold text-decoration-none ms-1">
+                                Sign In Here <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Privacy & Local Processing Notice -->
+        <div class="text-center mt-3">
+            <span class="badge bg-light text-secondary border px-3 py-1.5 rounded-pill small fw-normal shadow-sm">
+                <i class="bi bi-shield-lock text-teal me-1"></i> Fast Offline Storage &bull; Zero Paid API Dependency
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const pathCollege = document.getElementById('pathCollege');
+        const pathCompetitive = document.getElementById('pathCompetitive');
+        const collegeFields = document.getElementById('collegeFields');
+        const competitiveFields = document.getElementById('competitiveFields');
+
+        function togglePathFields() {
+            if (pathCollege && pathCollege.checked) {
+                if (collegeFields) collegeFields.classList.remove('d-none');
+                if (competitiveFields) competitiveFields.classList.add('d-none');
+            } else {
+                if (collegeFields) collegeFields.classList.add('d-none');
+                if (competitiveFields) competitiveFields.classList.remove('d-none');
+            }
+        }
+
+        if (pathCollege && pathCompetitive) {
+            pathCollege.addEventListener('change', togglePathFields);
+            pathCompetitive.addEventListener('change', togglePathFields);
+        }
+
+        // Live password match indicator
+        const pass = document.getElementById('password');
+        const confirmPass = document.getElementById('confirm_password');
+        const matchMsg = document.getElementById('passwordMatchMessage');
+
+        function checkPasswordMatch() {
+            if (!confirmPass.value) {
+                matchMsg.textContent = 'Must match password';
+                matchMsg.className = 'form-text small';
+                return;
+            }
+            if (pass.value === confirmPass.value) {
+                matchMsg.textContent = '✓ Passwords match';
+                matchMsg.className = 'form-text small text-success fw-semibold';
+            } else {
+                matchMsg.textContent = '✗ Passwords do not match';
+                matchMsg.className = 'form-text small text-danger fw-semibold';
+            }
+        }
+
+        if (pass && confirmPass) {
+            pass.addEventListener('input', checkPasswordMatch);
+            confirmPass.addEventListener('input', checkPasswordMatch);
+        }
+    });
+</script>
+{% endblock %}

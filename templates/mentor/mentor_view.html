@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Ask Anything AI Mentor - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="py-2">
+    <!-- Top Header Banner -->
+    <div class="p-4 rounded-4 text-white shadow-sm mb-4 mentor-hero-banner" style="background: linear-gradient(135deg, #091e3a 0%, #1e293b 50%, #0d9488 100%);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <span class="badge bg-white text-dark fw-bold px-3 py-1.5 rounded-pill"><i class="bi bi-robot text-teal me-1"></i> Autonomous AI Mentor</span>
+                    {% if is_live_ai %}
+                    <span class="badge bg-success text-white px-3 py-1.5 rounded-pill shadow-sm" id="aiProviderBadge"><i class="bi bi-broadcast me-1"></i> Online &bull; {{ ai_provider }}</span>
+                    {% elif provider_status and provider_status.provider == 'ollama' %}
+                    <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill shadow-sm" id="aiProviderBadge"><i class="bi bi-exclamation-triangle-fill me-1"></i> Offline: Ollama Unavailable</span>
+                    {% else %}
+                    <span class="badge bg-dark bg-opacity-50 text-white border border-light border-opacity-25 px-3 py-1.5 rounded-pill" id="aiProviderBadge"><i class="bi bi-check-circle-fill text-success me-1"></i> Online &bull; {{ ai_provider }}</span>
+                    {% endif %}
+                </div>
+                <h2 class="fw-bold text-white mb-2">Ask Anything AI Study Mentor</h2>
+                <p class="mb-0 text-white-50" style="font-size: 0.95rem;">
+                    Ask concept questions, code debugging, math problems, interview prep, or syllabus revision across Python, Java, C, C++, JS, AI/ML, OS, Networks, DBMS, and Aptitude.
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-light btn-sm text-nowrap px-3 py-2 fw-semibold" id="newChatTopBtn">
+                    <i class="bi bi-plus-lg me-1"></i> New Session
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Conversations History & Level Controls -->
+        <div class="col-lg-3">
+            <!-- Level Selector Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-3">
+                <label class="form-label small fw-bold text-dark d-flex align-items-center gap-1 mb-2">
+                    <i class="bi bi-sliders text-teal"></i> Explanation Depth
+                </label>
+                <div class="btn-group w-100" role="group" id="levelSelector">
+                    <input type="radio" class="btn-check" name="explanationLevel" id="levelBeginner" value="beginner" {% if not user.skill_level or user.skill_level == 'beginner' %}checked{% endif %}>
+                    <label class="btn btn-outline-teal btn-sm" for="levelBeginner">Beginner</label>
+
+                    <input type="radio" class="btn-check" name="explanationLevel" id="levelIntermediate" value="intermediate" {% if user.skill_level == 'intermediate' %}checked{% endif %}>
+                    <label class="btn btn-outline-teal btn-sm" for="levelIntermediate">Interm.</label>
+
+                    <input type="radio" class="btn-check" name="explanationLevel" id="levelAdvanced" value="advanced" {% if user.skill_level == 'advanced' %}checked{% endif %}>
+                    <label class="btn btn-outline-teal btn-sm" for="levelAdvanced">Advanced</label>
+                </div>
+                <small class="text-muted d-block mt-2" style="font-size: 0.75rem;" id="levelHelpText">
+                    Beginner: Simple mental models, intuitive analogies &amp; clear code.
+                </small>
+            </div>
+
+            <!-- Conversations List -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-dark"><i class="bi bi-chat-left-dots text-primary me-1"></i> Chat History</span>
+                    <button class="btn btn-sm btn-link text-teal p-0 text-decoration-none fw-semibold" id="newChatSidebarBtn">
+                        <i class="bi bi-plus-circle me-1"></i> New
+                    </button>
+                </div>
+
+                <div class="d-flex flex-column gap-1 overflow-y-auto" style="max-height: 380px;" id="conversationsContainer">
+                    {% if conversations %}
+                        {% for conv in conversations %}
+                        <a href="{{ url_for('mentor_view', c=conv.id) }}" class="p-2 rounded text-decoration-none small d-flex justify-content-between align-items-center {% if active_conversation and active_conversation.id == conv.id %}bg-teal text-white fw-semibold{% else %}bg-light text-dark hover-teal{% endif %}" data-conv-id="{{ conv.id }}">
+                            <span class="text-truncate me-2" style="max-width: 170px;"><i class="bi bi-chat-text me-1"></i> {{ conv.title }}</span>
+                            <span class="badge {% if active_conversation and active_conversation.id == conv.id %}bg-white text-teal{% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size: 0.65rem;">
+                                {{ conv.messages.count() }}
+                            </span>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-muted small p-2 text-center">No past chats yet. Start asking below!</div>
+                    {% endif %}
+                </div>
+
+                {% if active_conversation %}
+                <div class="border-top pt-2 mt-2">
+                    <button class="btn btn-link text-danger p-0 small text-decoration-none w-100 text-center" id="clearActiveChatBtn" data-conv-id="{{ active_conversation.id }}">
+                        <i class="bi bi-trash3 me-1"></i> Clear Current Conversation
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Diagnostic Context Widget -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <span class="small fw-bold text-dark d-block mb-2"><i class="bi bi-bullseye text-danger me-1"></i> Quick Mentor Queries</span>
+                <div class="d-flex flex-column gap-1">
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="How am I doing and what should I study next?">
+                        📊 Analyze My Weak Topics
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="Explain Java OOP, inheritance and polymorphism with working examples">
+                        ☕ Java OOP &amp; Polymorphism
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="Explain Python decorators and list comprehensions with code">
+                        🐍 Python Decorators
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="Explain C pointers and dynamic memory allocation with malloc">
+                        ⚡ C Pointers &amp; Memory
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="Explain C++ STL vector and map with time complexities">
+                        🚀 C++ STL &amp; Vectors
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="Explain JavaScript Promises, async/await, and event loop">
+                        🌐 JS Async/Await &amp; Loop
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="What are neural networks, forward pass, and backpropagation in Machine Learning?">
+                        🤖 AI &amp; Neural Networks
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="Explain Operating System deadlock conditions and Banker's algorithm">
+                        💻 OS Deadlocks &amp; Banker's
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="Explain Computer Networks TCP 3-way handshake vs UDP">
+                        🔌 Networks TCP 3-Way Handshake
+                    </button>
+                    <button type="button" class="prompt-pill text-start p-1.5" data-prompt="Explain DBMS ACID properties, normalization 1NF 2NF 3NF, and indexing">
+                        💾 DBMS ACID &amp; Normalization
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Chat Conversation Window -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white d-flex flex-column" style="min-height: 600px;">
+                <!-- Chat Messages Window -->
+                <div id="mentorChatWindow" class="chat-window mb-3 flex-grow-1 overflow-y-auto p-2" style="max-height: 520px; min-height: 420px;">
+                    {% if messages %}
+                        {% for msg in messages %}
+                            {% if msg.sender == 'user' %}
+                            <div class="chat-bubble bubble-user mb-3 align-self-end">
+                                {{ msg.content or msg.message_text }}
+                            </div>
+                            {% else %}
+                            <div class="chat-bubble bubble-mentor mb-3 align-self-start position-relative">
+                                <div class="message-content">{{ (msg.content or msg.message_text)|safe }}</div>
+                                <div class="d-flex justify-content-end align-items-center gap-2 mt-2 pt-2 mentor-bubble-footer small">
+                                    <button class="btn btn-link p-0 save-to-notebook-btn text-decoration-none small" data-text="{{ (msg.content or msg.message_text)|striptags|truncate(150) }}">
+                                        <i class="bi bi-journal-plus me-1 text-teal"></i> Save to Notes
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <!-- Initial Welcome Message from Mentor -->
+                        <div class="chat-bubble bubble-mentor mb-3 align-self-start">
+                            <h6 class="fw-bold text-teal mb-1">🤖 Hello {{ user.full_name }}!</h6>
+                            <p class="small mb-2">
+                                I am your <strong>EduMentor AI Study Mentor</strong>. I can break down complex engineering and academic concepts into intuitive mental models, write working code across any language, explain algorithmic tradeoffs, and guide your exam revision.
+                            </p>
+                            <p class="small mb-0 opacity-75">
+                                Type any query below, paste a code error for debugging, or click one of the quick topic chips on the left!
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Chat Input Form -->
+                <form id="mentorChatForm" class="d-flex flex-column gap-2">
+                    <input type="hidden" id="activeConvId" value="{{ active_conversation.id if active_conversation else '' }}">
+                    <div class="d-flex gap-2 align-items-end">
+                        <div class="input-group flex-grow-1 shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-light border-end-0 align-self-stretch d-flex align-items-center"><i class="bi bi-chat-left-text text-secondary"></i></span>
+                            <textarea id="mentorChatInput" class="form-control border-start-0 py-2.5" rows="1" placeholder="Ask anything across CS, AI, Math, Engineering, or Aptitude... (Enter to send, Shift+Enter for new line)" autocomplete="off" style="resize: none; min-height: 46px; max-height: 160px; overflow-y: auto;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-teal px-4 py-2.5 fw-bold text-white text-nowrap shadow-sm d-flex align-items-center justify-content-center" id="sendBtn" style="min-height: 46px;">
+                            <i class="bi bi-send-fill me-1"></i> <span>Send</span>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center px-1 text-muted" style="font-size: 0.75rem;">
+                        <span><i class="bi bi-keyboard me-1"></i><strong>Enter</strong> sends &bull; <strong>Shift + Enter</strong> for new line</span>
+                        <span id="charCount" class="text-muted"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Quick Save Mentor Response to Notebook -->
+<div class="modal fade" id="saveMentorNoteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-journal-plus text-teal me-2"></i>Save Mentor Explanation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('api_note_quick_save') }}" method="POST">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Note Title</label>
+                        <input type="text" name="title" id="saveNoteTitle" class="form-control" value="AI Mentor Study Takeaway" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Subject / Track</label>
+                        <input type="text" name="subject" class="form-control" value="{{ user.target_exam or user.degree_or_stream or 'Computer Science' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tags (comma-separated)</label>
+                        <input type="text" name="tags" class="form-control" value="ai-mentor, study-notes">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Content</label>
+                        <textarea name="content" id="saveNoteContent" class="form-control" rows="6" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-teal btn-sm text-white fw-semibold">Save to Notebook</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/mentor.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Competitive Exam Prep - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Banner -->
+    <div class="p-4 p-md-5 mb-4 rounded-4 competitive-hero-banner text-white shadow d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <span class="badge bg-white text-navy fw-bold px-3 py-2">Path B: Competitive Exam Prep</span>
+                <span class="badge bg-teal-subtle text-white border border-light px-3 py-2 fw-semibold">
+                    <i class="bi bi-bullseye me-1"></i> Target: {{ selected_exam }}
+                </span>
+            </div>
+            <h2 class="fw-bold mb-2 text-white">Aptitude & General Awareness Drills</h2>
+            <p class="mb-0 text-white-50 small" style="color: rgba(255, 255, 255, 0.9) !important;">
+                Calibrated mock tests designed to build speed, accuracy, and quick analytical reflexes for {{ selected_exam }} aspirants.
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('select_path') }}" class="btn btn-outline-light btn-sm text-nowrap px-3 py-2">
+                <i class="bi bi-arrow-repeat me-1"></i> Switch Track
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-teal text-white btn-sm fw-bold text-nowrap shadow-sm px-3 py-2">
+                <i class="bi bi-speedometer2 me-1"></i> View Analytics
+            </a>
+        </div>
+    </div>
+
+    <!-- Exam Selector Pills -->
+    <div class="card border shadow-sm rounded-4 p-3 mb-4 bg-white">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span class="fw-bold small text-navy">
+                <i class="bi bi-filter-circle-fill text-teal me-1"></i> Select Exam Focus:
+            </span>
+            <div class="d-flex flex-wrap gap-2">
+                {% for exam_code, exam_info in competitive_exams.items() %}
+                <a href="{{ url_for('competitive_path', exam=exam_code) }}" 
+                   class="btn btn-sm {% if selected_exam == exam_code %}exam-pill-active shadow-sm{% else %}exam-pill-inactive{% endif %} px-3 py-2">
+                    <span class="fw-bold">{{ exam_code }}</span> 
+                    <small class="opacity-85">({{ exam_info.badge }})</small>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Shared Categories Grid -->
+    <div class="row g-4 mb-5">
+        {% for cat_name, cat_info in competitive_categories.items() %}
+        <div class="col-lg-6">
+            <div class="card h-100 card-hover p-4 border shadow-sm rounded-4 d-flex flex-column bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="stat-icon icon-teal shadow-sm">
+                        <i class="bi {{ cat_info.icon }}"></i>
+                    </div>
+                    <span class="badge bg-teal-subtle text-teal border border-teal-subtle px-3 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-stopwatch me-1"></i> High-Yield Section
+                    </span>
+                </div>
+
+                <h4 class="fw-bold mb-2 text-dark">{{ cat_name }}</h4>
+                <p class="text-secondary small mb-3">{{ cat_info.description }}</p>
+
+                <h6 class="fw-semibold small text-uppercase text-secondary mb-2">High-Yield Topics:</h6>
+                <div class="d-flex flex-wrap gap-1 mb-4 flex-grow-1">
+                    {% for topic in cat_info.topics %}
+                    <span class="badge bg-light text-secondary border px-2 py-1 small">{{ topic }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="border-top pt-3 mt-auto">
+                    <button type="button" 
+                            class="btn btn-teal w-100 fw-semibold text-white shadow-sm mb-2"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#quizConfigModal"
+                            data-path="competitive"
+                            data-subject="{{ cat_name }}"
+                            data-exam="{{ selected_exam }}">
+                        <i class="bi bi-sliders me-1"></i> Configure & Start Practice
+                    </button>
+                    <div class="text-center small">
+                        <span class="text-muted">Quick 5-MCQ Drill: </span>
+                        <a href="{{ url_for('quiz_view', path='competitive', subject=cat_name, exam=selected_exam, count=5, time_limit=5, difficulty='Easy') }}" class="badge text-bg-light border text-decoration-none">Easy</a>
+                        <a href="{{ url_for('quiz_view', path='competitive', subject=cat_name, exam=selected_exam, count=5, time_limit=5, difficulty='Medium') }}" class="badge text-bg-light border text-decoration-none">Med</a>
+                        <a href="{{ url_for('quiz_view', path='competitive', subject=cat_name, exam=selected_exam, count=5, time_limit=5, difficulty='Hard') }}" class="badge text-bg-light border text-decoration-none">Hard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pedagogical Framework Disclosure -->
+    <div class="alert alert-light border rounded-4 p-4 shadow-sm bg-white">
+        <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-shield-check text-teal fs-4 flex-shrink-0 mt-1"></i>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">Pedagogical Framework Disclosure</h6>
+                <p class="small text-secondary mb-0">
+                    EduMentor AI provides calibrated conceptual practice across standard shared categories (Aptitude, Reasoning, English, General Awareness). 
+                    It is an educational companion system and does not claim official past-year question licensing or complete statutory syllabus coverage.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

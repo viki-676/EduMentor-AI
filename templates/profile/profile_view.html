@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Profile Header Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+            <div class="d-flex align-items-center gap-4">
+                <div class="stat-icon icon-teal rounded-circle shadow-sm" style="width: 72px; height: 72px; font-size: 2rem;">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                        <h2 class="fw-bold text-dark mb-0">{{ user.full_name }}</h2>
+                        <span class="badge {% if user.learning_path == 'competitive' %}bg-teal text-white{% else %}bg-primary{% endif %} rounded-pill px-3 py-1">
+                            {{ 'Competitive Track' if user.learning_path == 'competitive' else 'College Track' }}
+                        </span>
+                    </div>
+                    <p class="text-secondary mb-1">
+                        <i class="bi bi-at text-teal"></i>{{ user.username }} &bull; <i class="bi bi-envelope text-secondary me-1"></i>{{ user.email }}
+                    </p>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar3 me-1"></i> Member since {{ user.created_at.strftime('%d %B %Y') }} &bull; 
+                        <strong>Focus:</strong> {{ user.degree_or_stream if user.learning_path == 'college' else user.target_exam or 'SSC' }}
+                    </small>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary px-3 fw-semibold">
+                    <i class="bi bi-speedometer2 me-1"></i> View Dashboard
+                </a>
+                <a href="{{ url_for('select_path') }}" class="btn btn-outline-secondary px-3">
+                    <i class="bi bi-arrow-repeat me-1"></i> Change Track
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Overview Ribbon -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small fw-semibold text-uppercase">Total Quizzes</span>
+                    <i class="bi bi-journal-check text-primary fs-4"></i>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ analytics.total_quizzes }}</h3>
+                <small class="text-secondary">Completed mock sessions</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small fw-semibold text-uppercase">Average Accuracy</span>
+                    <i class="bi bi-percent text-teal fs-4"></i>
+                </div>
+                <h3 class="fw-bold mb-0 text-teal">{{ analytics.overall_accuracy }}%</h3>
+                <small class="text-secondary">{{ analytics.total_correct }} of {{ analytics.total_questions_attempted }} questions</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small fw-semibold text-uppercase">Mastered Topics</span>
+                    <i class="bi bi-star-fill text-warning fs-4"></i>
+                </div>
+                <h3 class="fw-bold mb-0 text-success">{{ analytics.strong_topics|length }}</h3>
+                <small class="text-secondary">&ge;75% concept accuracy</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="text-muted small fw-semibold text-uppercase">Revision Targets</span>
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+                </div>
+                <h3 class="fw-bold mb-0 text-danger">{{ analytics.weak_topics|length }}</h3>
+                <small class="text-secondary">&lt;60% accuracy flagged</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Academic Mastery & Action Roadmap -->
+        <div class="col-lg-5">
+            <!-- Learning Progress Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-compass-fill text-teal"></i> Learning Status &amp; Readiness
+                </h5>
+                <div class="p-3 bg-light rounded-3 border mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small fw-semibold text-dark">Overall Readiness Tier:</span>
+                        <span class="badge bg-{{ recommendations.readiness_badge }} px-2 py-1">{{ recommendations.readiness_level }}</span>
+                    </div>
+                    <div class="progress mt-2" style="height: 8px;">
+                        <div class="progress-bar bg-{{ recommendations.readiness_badge }}" role="progressbar" style="width: {{ recommendations.readiness_percent }}%;"></div>
+                    </div>
+                </div>
+
+                <!-- Weak Topics Target -->
+                <h6 class="fw-bold text-dark small text-uppercase mb-2">High-Yield Revision Areas:</h6>
+                {% if analytics.weak_topics %}
+                <ul class="list-group list-group-flush mb-3">
+                    {% for w in analytics.weak_topics[:4] %}
+                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="text-dark small d-block">{{ w.topic }}</strong>
+                            <small class="text-muted">{{ w.subject }}</small>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ w.accuracy }}%</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="small text-muted mb-3">
+                    {% if analytics.total_quizzes == 0 %}
+                    No practice quizzes attempted yet. Take a quiz to map your strengths!
+                    {% else %}
+                    No weak topics identified (&gt;60% accuracy across all tested concepts). Great job!
+                    {% endif %}
+                </p>
+                {% endif %}
+
+                <!-- Strong Topics -->
+                <h6 class="fw-bold text-dark small text-uppercase mb-2">Strong Concepts:</h6>
+                {% if analytics.strong_topics %}
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% for s in analytics.strong_topics[:5] %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
+                        <i class="bi bi-check2 me-1"></i>{{ s.topic }} ({{ s.accuracy }}%)
+                    </span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="small text-muted mb-3">Strong topics will highlight here after consistent practice.</p>
+                {% endif %}
+
+                <a href="{{ url_for('mentor_view') }}" class="btn btn-outline-teal w-100 btn-sm fw-semibold">
+                    <i class="bi bi-robot me-1"></i> Consult AI Mentor for Study Advice
+                </a>
+            </div>
+        </div>
+
+        <!-- Right Column: Profile Editing & Password Change -->
+        <div class="col-lg-7">
+            <!-- Edit Profile Details Form -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-pencil-square text-primary"></i> Edit Profile Information
+                </h5>
+                <p class="text-secondary small mb-4">Update your name, email address, and academic preferences.</p>
+
+                <form method="POST" action="{{ url_for('profile_update') }}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label for="full_name" class="form-label fw-semibold small text-dark">Full Name</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name }}" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="username_static" class="form-label fw-semibold small text-dark">Username</label>
+                            <input type="text" class="form-control bg-light text-muted" id="username_static" value="{{ user.username }}" readonly disabled title="Username cannot be changed">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold small text-dark">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">Learning Path Preference</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="learning_path" id="profCollege" value="college" {% if user.learning_path == 'college' %}checked{% endif %}>
+                                <label class="btn btn-outline-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2" for="profCollege">
+                                    <i class="bi bi-laptop"></i> College Track
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="learning_path" id="profCompetitive" value="competitive" {% if user.learning_path == 'competitive' %}checked{% endif %}>
+                                <label class="btn btn-outline-teal w-100 py-2 d-flex align-items-center justify-content-center gap-2" for="profCompetitive">
+                                    <i class="bi bi-award"></i> Competitive Prep
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="profCollegeFields" class="mb-4 {% if user.learning_path == 'competitive' %}d-none{% endif %}">
+                        <label for="degree_or_stream" class="form-label fw-semibold small text-dark">College Degree / Branch</label>
+                        <select class="form-select" id="degree_or_stream" name="degree_or_stream">
+                            <option value="B.Tech Computer Science" {% if user.degree_or_stream == 'B.Tech Computer Science' %}selected{% endif %}>B.Tech Computer Science / IT</option>
+                            <option value="BCA" {% if user.degree_or_stream == 'BCA' %}selected{% endif %}>BCA (Bachelor of Computer Applications)</option>
+                            <option value="B.Sc. Computer Science" {% if user.degree_or_stream == 'B.Sc. Computer Science' %}selected{% endif %}>B.Sc. Computer Science</option>
+                            <option value="B.Tech (Other Stream)" {% if user.degree_or_stream == 'B.Tech (Other Stream)' %}selected{% endif %}>B.Tech (Other Streams)</option>
+                            <option value="Other Degree" {% if user.degree_or_stream == 'Other Degree' %}selected{% endif %}>Other Degree</option>
+                        </select>
+                    </div>
+
+                    <div id="profCompetitiveFields" class="mb-4 {% if user.learning_path != 'competitive' %}d-none{% endif %}">
+                        <label for="target_exam" class="form-label fw-semibold small text-dark">Target Competitive Exam</label>
+                        <select class="form-select" id="target_exam" name="target_exam">
+                            {% for exam_code, exam_info in competitive_exams.items() %}
+                            <option value="{{ exam_code }}" {% if user.target_exam == exam_code %}selected{% endif %}>{{ exam_code }} - {{ exam_info.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-teal px-4 fw-bold text-white shadow-sm">
+                        <i class="bi bi-check-lg me-1"></i> Save Profile Changes
+                    </button>
+                </form>
+            </div>
+
+            <!-- Change Password Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-lock text-primary"></i> Change Security Password
+                </h5>
+                <p class="text-secondary small mb-4">Ensure your account is protected with a strong password.</p>
+
+                <form method="POST" action="{{ url_for('profile_change_password') }}">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label fw-semibold small text-dark">Current Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="current_password" name="current_password" placeholder="••••••••" required>
+                            <button class="btn btn-outline-secondary toggle-password-btn" type="button" data-target="current_password" title="Show/Hide Password">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label for="new_password" class="form-label fw-semibold small text-dark">New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="new_password" name="new_password" placeholder="At least 6 characters" minlength="6" required>
+                                <button class="btn btn-outline-secondary toggle-password-btn" type="button" data-target="new_password" title="Show/Hide Password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="confirm_password" class="form-label fw-semibold small text-dark">Confirm New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Repeat new password" minlength="6" required>
+                                <button class="btn btn-outline-secondary toggle-password-btn" type="button" data-target="confirm_password" title="Show/Hide Password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-primary px-4 fw-bold">
+                        <i class="bi bi-key me-1"></i> Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const profCollege = document.getElementById('profCollege');
+        const profCompetitive = document.getElementById('profCompetitive');
+        const collegeFields = document.getElementById('profCollegeFields');
+        const competitiveFields = document.getElementById('profCompetitiveFields');
+
+        function toggleProfFields() {
+            if (profCollege.checked) {
+                collegeFields.classList.remove('d-none');
+                competitiveFields.classList.add('d-none');
+            } else {
+                collegeFields.classList.add('d-none');
+                competitiveFields.classList.remove('d-none');
+            }
+        }
+
+        if (profCollege && profCompetitive) {
+            profCollege.addEventListener('change', toggleProfFields);
+            profCompetitive.addEventListener('change', toggleProfFields);
+        }
+    });
+</script>
+{% endblock %}

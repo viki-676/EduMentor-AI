@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}{{ paper.title }} - EduMentor AI PYQ{% endblock %}
+
+{% block content %}
+<div class="py-2" style="max-width: 960px; margin: 0 auto;">
+    <!-- Breadcrumb & Back -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('pyq_catalog') }}" class="text-teal text-decoration-none">PYQ Papers</a></li>
+                <li class="breadcrumb-item active text-truncate" style="max-width: 300px;">{{ paper.title }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('pyq_practice_mode', subject=paper.subject) }}" class="btn btn-warning btn-sm fw-bold text-dark">
+                <i class="bi bi-stopwatch me-1"></i> Practice Mode
+            </a>
+            <a href="{{ url_for('pyq_catalog') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Papers
+            </a>
+        </div>
+    </div>
+
+    <!-- Paper Details Header Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="badge bg-teal-subtle text-teal fw-semibold rounded-pill px-3 py-1">{{ paper.exam_name }}</span>
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">{{ paper.year }}</span>
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1">{{ paper.course }}</span>
+            {% if paper.is_verified %}
+            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1"><i class="bi bi-patch-check-fill me-1"></i>Verified Paper</span>
+            {% endif %}
+        </div>
+
+        <h2 class="fw-bold text-dark mb-2">{{ paper.title }}</h2>
+        <div class="text-muted small mb-3">
+            <i class="bi bi-building me-1"></i> {{ paper.board_or_university or 'Examination Board' }} &bull;
+            <i class="bi bi-book me-1 ms-2"></i> Subject: <strong>{{ paper.subject }}</strong> &bull;
+            <i class="bi bi-clock me-1 ms-2"></i> Duration: {{ paper.time_limit_minutes }} mins
+        </div>
+
+        <div class="d-flex gap-3 p-3 bg-light rounded-3 border small">
+            <div><strong>Questions:</strong> {{ questions|length }}</div>
+            <div>&bull;</div>
+            <div><strong>Total Marks:</strong> {{ paper.total_marks or (questions|length * 2) }}</div>
+            <div>&bull;</div>
+            <div><strong>Marking Scheme:</strong> Included with solutions</div>
+        </div>
+    </div>
+
+    <!-- Questions List with Marking Schemes -->
+    <div class="d-flex flex-column gap-4">
+        {% for q in questions %}
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white position-relative">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-pill fw-bold">Q{{ q.question_number or loop.index }}</span>
+                    <span class="badge bg-light text-secondary border small">{{ q.question_type|upper }}</span>
+                    <span class="badge bg-secondary-subtle text-secondary small">{{ q.topic or paper.subject }}</span>
+                </div>
+                <span class="text-muted small fw-semibold">Marks: {{ q.marks or 1 }}</span>
+            </div>
+
+            <!-- Question Text -->
+            <h5 class="fw-bold text-dark my-3" style="line-height: 1.6;">
+                {{ q.question_text }}
+            </h5>
+
+            <!-- Options if MCQ -->
+            {% if q.options %}
+            <div class="row g-2 mb-3">
+                {% for key, opt in q.options.items() %}
+                <div class="col-md-6">
+                    <div class="p-2.5 rounded-3 border bg-light small d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary text-white">{{ key }}</span>
+                        <span class="text-dark">{{ opt }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Reveal Official Solution & Marking Scheme Accordion -->
+            <div class="border-top pt-3 mt-2">
+                <button class="btn btn-sm btn-outline-teal" type="button" data-bs-toggle="collapse" data-bs-target="#solCollapse{{ q.id }}" aria-expanded="false">
+                    <i class="bi bi-eye me-1"></i> Reveal Solution &amp; Marking Scheme
+                </button>
+                <a href="{{ url_for('mentor_view') }}" class="btn btn-sm btn-link text-decoration-none text-muted" title="Ask AI Mentor about this question">
+                    <i class="bi bi-robot me-1 text-teal"></i> Discuss with AI Mentor
+                </a>
+
+                <div class="collapse mt-3" id="solCollapse{{ q.id }}">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="mb-2">
+                            <strong class="text-success d-flex align-items-center gap-1 mb-1">
+                                <i class="bi bi-check-circle-fill"></i> Official Answer:
+                            </strong>
+                            <div class="p-2 bg-white rounded border font-monospace text-dark small">{{ q.correct_answer }}</div>
+                        </div>
+
+                        {% if q.explanation %}
+                        <div class="mb-2">
+                            <strong class="text-dark small d-block mb-1">Step-by-Step Explanation:</strong>
+                            <p class="text-secondary small mb-0">{{ q.explanation }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if q.marking_scheme %}
+                        <div class="mt-2 pt-2 border-top">
+                            <strong class="text-primary small d-flex align-items-center gap-1 mb-1">
+                                <i class="bi bi-card-checklist"></i> Marking Scheme Breakdown:
+                            </strong>
+                            <p class="text-muted small mb-0">{{ q.marking_scheme }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

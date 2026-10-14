@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}{{ resource.title }} - EduMentor AI Notes{% endblock %}
+
+{% block content %}
+<div class="py-2 reading-container">
+    <!-- Top Breadcrumb & Actions Bar -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('resources_catalog') }}" class="text-teal text-decoration-none">Resources</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('resources_catalog', category=resource.category) }}" class="text-muted text-decoration-none">{{ resource.category }}</a></li>
+                <li class="breadcrumb-item active text-truncate" style="max-width: 250px;">{{ resource.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- Mark Completed Button -->
+            <button class="btn btn-sm {% if is_completed %}btn-success{% else %}btn-outline-success{% endif %} toggle-complete-btn" data-id="{{ resource.id }}" id="completeBtn">
+                <i class="bi bi-check2-circle me-1"></i> <span id="completeText">{{ 'Completed' if is_completed else 'Mark Complete' }}</span>
+            </button>
+
+            <!-- Bookmark Button -->
+            <button class="btn btn-sm btn-outline-secondary toggle-bookmark-btn" data-type="resource" data-id="{{ resource.id }}" id="bookmarkBtn" title="Bookmark Resource">
+                <i class="bi bi-bookmark{% if is_bookmarked %}-fill text-warning{% endif %}"></i>
+            </button>
+
+            <!-- Quick Save to Notes Button -->
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#saveNoteModal" title="Save to My Notes">
+                <i class="bi bi-journal-plus me-1"></i> Save to Notes
+            </button>
+
+            <!-- Ask AI Mentor -->
+            <a href="{{ url_for('mentor_view') }}" class="btn btn-sm btn-teal text-white">
+                <i class="bi bi-robot me-1"></i> Ask AI Mentor
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Reading Body -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white reading-content">
+                <!-- Resource Header -->
+                <div class="mb-4 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                        <span class="badge {% if resource.learning_section == 'Competitive Exam Preparation' %}bg-teal-subtle text-teal border border-teal-subtle{% else %}bg-primary-subtle text-primary border border-primary-subtle{% endif %} rounded-pill px-3 py-1">
+                            {{ resource.learning_section }}
+                        </span>
+                        <span class="badge bg-light text-secondary border rounded-pill px-3 py-1">{{ resource.category }}</span>
+                        <span class="badge {% if resource.difficulty == 'Beginner' %}bg-success-subtle text-success{% elif resource.difficulty == 'Intermediate' %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3 py-1">
+                            {{ resource.difficulty }}
+                        </span>
+                        <span class="badge bg-light text-secondary rounded-pill px-3 py-1 border">
+                            <i class="bi bi-clock me-1"></i> {{ resource.estimated_read_minutes }} min read
+                        </span>
+                    </div>
+
+                    <h1 class="fw-bold text-dark display-6 mb-3">{{ resource.title }}</h1>
+                    <p class="lead text-secondary mb-3" style="font-size: 1.05rem;">
+                        {{ resource.summary }}
+                    </p>
+
+                    {% if resource.prerequisites %}
+                    <div class="p-3 bg-light rounded-3 border small">
+                        <strong class="text-teal d-flex align-items-center gap-1 mb-1">
+                            <i class="bi bi-info-circle-fill"></i> Prerequisites
+                        </strong>
+                        <span class="text-muted">{{ resource.prerequisites }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 1. Definitions & Terminology -->
+                {% if resource.definitions %}
+                <section id="definitions" class="mb-5">
+                    <h3 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-book text-teal"></i> Key Definitions &amp; Terminology
+                    </h3>
+                    <div class="row g-3">
+                        {% for term, definition in resource.definitions.items() %}
+                        <div class="col-12">
+                            <div class="p-3 rounded-3 bg-light border border-start-3 border-teal">
+                                <h6 class="fw-bold text-dark mb-1 font-monospace">{{ term }}</h6>
+                                <p class="mb-0 text-secondary small">{{ definition }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- 2. Detailed Educational Content & Examples -->
+                <section id="core-concepts" class="mb-5">
+                    <h3 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-lightbulb text-warning"></i> Core Concepts &amp; Principles
+                    </h3>
+                    <div class="resource-body text-dark" style="line-height: 1.8; font-size: 1.02rem;">
+                        {{ resource.content|safe }}
+                    </div>
+                </section>
+
+                <!-- Code Examples (if available) -->
+                {% if resource.code_examples %}
+                <section id="code-examples" class="mb-5">
+                    <h3 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-code-slash text-teal"></i> Working Code Examples
+                    </h3>
+                    {% for example in resource.code_examples %}
+                    <div class="card border rounded-3 p-3 bg-light mb-3">
+                        <h6 class="fw-bold text-dark mb-1">{{ example.title }}</h6>
+                        {% if example.explanation %}
+                        <p class="text-secondary small mb-2">{{ example.explanation }}</p>
+                        {% endif %}
+                        <div class="code-container rounded-3 overflow-hidden border border-secondary shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center bg-dark text-light px-3 py-1.5 font-monospace small" style="background-color: #0f172a !important;">
+                                <span class="badge bg-secondary-subtle text-light small">{{ (example.language or 'code')|upper }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 0.75rem;" onclick="navigator.clipboard.writeText(this.closest('.code-container').querySelector('code').innerText)">
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                            </div>
+                            <pre class="bg-dark text-light p-3 m-0 overflow-x-auto"><code class="language-{{ example.language }}">{{ example.code }}</code></pre>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+
+                <!-- 3. Key Points & Revision Summary -->
+                {% if resource.key_points %}
+                <section id="key-points" class="mb-5">
+                    <h3 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-check2-all text-success"></i> Key Takeaways for Quick Revision
+                    </h3>
+                    <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle">
+                        <ul class="mb-0 ps-3">
+                            {% for point in resource.key_points %}
+                            <li class="text-dark py-1 small fw-medium">{{ point }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- 4. Common Pitfalls / Mistakes -->
+                {% if resource.common_mistakes %}
+                <section id="common-mistakes" class="mb-5">
+                    <h3 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-exclamation-triangle text-danger"></i> Common Pitfalls &amp; Traps
+                    </h3>
+                    <div class="p-3 bg-danger-subtle rounded-3 border border-danger-subtle">
+                        <ul class="mb-0 ps-3">
+                            {% for mistake in resource.common_mistakes %}
+                            <li class="text-dark py-1 small">{{ mistake }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- 5. Self-Assessment Practice Questions -->
+                {% if resource.practice_questions %}
+                <section id="practice-questions" class="mb-4">
+                    <h3 class="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-patch-question text-primary"></i> Self-Check Practice Questions
+                    </h3>
+                    <div class="d-flex flex-column gap-3">
+                        {% for pq in resource.practice_questions %}
+                        <div class="card border rounded-3 p-3 bg-light">
+                            <h6 class="fw-bold text-dark mb-2">Q{{ loop.index }}: {{ pq.question }}</h6>
+                            <div class="collapse mt-2" id="ansCollapse{{ loop.index }}">
+                                <div class="p-2.5 rounded bg-white border text-secondary small">
+                                    <strong class="text-success"><i class="bi bi-check-circle me-1"></i> Solution:</strong>
+                                    {{ pq.answer }}
+                                    {% if pq.explanation %}
+                                    <div class="mt-1.5 text-muted small border-top pt-1">{{ pq.explanation }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-teal mt-2 align-self-start" type="button" data-bs-toggle="collapse" data-bs-target="#ansCollapse{{ loop.index }}" aria-expanded="false">
+                                <i class="bi bi-eye me-1"></i> Reveal Solution
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- Footer Complete Action -->
+                <div class="border-top pt-4 mt-4 d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('resources_catalog') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Resources
+                    </a>
+                    <button class="btn btn-teal btn-sm text-white px-4 fw-semibold toggle-complete-btn" data-id="{{ resource.id }}">
+                        <i class="bi bi-check-lg me-1"></i> Finished Reading
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Table of Contents & Related Sidebar -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 85px;">
+                <!-- TOC Card -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-list-nested me-2 text-teal"></i>Page Outline</h6>
+                    <ul class="list-unstyled small mb-0 d-flex flex-column gap-2">
+                        {% if resource.definitions %}
+                        <li><a href="#definitions" class="text-decoration-none text-secondary hover-teal"><i class="bi bi-chevron-right me-1 small"></i> Definitions &amp; Terminology</a></li>
+                        {% endif %}
+                        <li><a href="#core-concepts" class="text-decoration-none text-secondary hover-teal"><i class="bi bi-chevron-right me-1 small"></i> Core Concepts &amp; Principles</a></li>
+                        {% if resource.code_examples %}
+                        <li><a href="#code-examples" class="text-decoration-none text-secondary hover-teal"><i class="bi bi-chevron-right me-1 small"></i> Code Examples</a></li>
+                        {% endif %}
+                        {% if resource.key_points %}
+                        <li><a href="#key-points" class="text-decoration-none text-secondary hover-teal"><i class="bi bi-chevron-right me-1 small"></i> Revision Takeaways</a></li>
+                        {% endif %}
+                        {% if resource.common_mistakes %}
+                        <li><a href="#common-mistakes" class="text-decoration-none text-secondary hover-teal"><i class="bi bi-chevron-right me-1 small"></i> Common Traps</a></li>
+                        {% endif %}
+                        {% if resource.practice_questions %}
+                        <li><a href="#practice-questions" class="text-decoration-none text-secondary hover-teal"><i class="bi bi-chevron-right me-1 small"></i> Self-Check Questions ({{ resource.practice_questions|length }})</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- Related Tutorials Card -->
+                {% if related_resources %}
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-signpost-split me-2 text-primary"></i>Related Tutorials</h6>
+                    <div class="d-flex flex-column gap-3">
+                        {% for rel in related_resources %}
+                        <a href="{{ url_for('resource_detail', slug=rel.slug) }}" class="p-2 rounded bg-light border text-decoration-none text-dark hover-shadow transition-all">
+                            <span class="badge bg-secondary-subtle text-secondary small mb-1">{{ rel.difficulty }}</span>
+                            <div class="fw-semibold small text-truncate">{{ rel.title }}</div>
+                            <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ rel.estimated_read_minutes }}m read</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Save Note -->
+<div class="modal fade" id="saveNoteModal" tabindex="-1" aria-labelledby="saveNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold" id="saveNoteModalLabel"><i class="bi bi-journal-plus text-primary me-2"></i>Quick Save to My Notes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('api_note_quick_save') }}" method="POST">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Note Title</label>
+                        <input type="text" name="title" class="form-control" value="Notes on {{ resource.title }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Subject / Track</label>
+                        <input type="text" name="subject" class="form-control" value="{{ resource.category }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tags (comma-separated)</label>
+                        <input type="text" name="tags" class="form-control" value="{{ resource.topic }}, tutorial, revision">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Notes / Highlights</label>
+                        <textarea name="content" class="form-control" rows="5" required>Summary: {{ resource.summary }}
+
+Key Points:
+{% for kp in resource.key_points %}- {{ kp }}
+{% endfor %}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-teal btn-sm text-white fw-semibold">Save to Notebook</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Complete toggle handler
+    const completeBtns = document.querySelectorAll('.toggle-complete-btn');
+    completeBtns.forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const resId = this.dataset.id;
+            try {
+                const res = await fetch(`/api/resources/${resId}/toggle`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'toggle_complete'})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        });
+    });
+
+    // Bookmark toggle handler
+    const bookmarkBtn = document.getElementById('bookmarkBtn');
+    if (bookmarkBtn) {
+        bookmarkBtn.addEventListener('click', async function() {
+            const resId = this.dataset.id;
+            try {
+                const res = await fetch(`/api/resources/${resId}/toggle`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'toggle_bookmark'})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const icon = this.querySelector('i');
+                    if (data.is_bookmarked) {
+                        icon.className = 'bi bi-bookmark-fill text-warning';
+                    } else {
+                        icon.className = 'bi bi-bookmark';
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

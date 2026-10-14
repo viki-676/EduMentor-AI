@@ -1,0 +1,84 @@
+# Python virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.env
+*.bak
+.venv/
+venv/
+ENV/
+
+# Database
+*.sqlite3
+instance/
+data/*.db
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS specific
+.DS_Store
+Thumbs.db
+# Local secrets and configuration
+.env.*
+!.env.example
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs and editor files
+*.log
+.vscode/
+.idea/
+
+# Local model and generated data
+*.joblib
+*.pkl
+*.pickle
+**/__pycache__/
+# Backup files
+*.bak
+*.backup
+
+# Python cache and temporary files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local databases and private data
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Generated ML artifacts
+ml/*.joblib
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Local environment and generated files
+.env
+.env.*
+!.env.example
+instance/
+venv/
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Local ML model artifacts (keep local; do not upload)
+ml/risk_model.joblib
+

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Settings &amp; Preferences - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="py-2" style="max-width: 850px; margin: 0 auto;">
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark mb-1"><i class="bi bi-gear-wide-connected text-teal me-2"></i>Platform Preferences &amp; Settings</h2>
+        <p class="text-muted small mb-0">Configure your appearance theme, AI explanation depth, and study goals.</p>
+    </div>
+
+    <!-- Appearance & Preferences Form -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+        <form action="{{ url_for('settings_update') }}" method="POST">
+            <!-- 1. Theme Selection -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-palette text-primary me-2"></i>Appearance Theme</h5>
+                <p class="text-muted small mb-3">Choose your visual reading experience across all dashboards and reading views.</p>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="card p-3 border rounded-3 h-100 cursor-pointer hover-teal {% if user.theme_preference == 'light' or not user.theme_preference %}border-teal bg-light{% endif %}">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="theme_preference" value="light" {% if user.theme_preference == 'light' or not user.theme_preference %}checked{% endif %}>
+                                <span class="form-check-label fw-bold text-dark"><i class="bi bi-sun-fill text-warning me-1"></i> Clean Light Mode</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Crisp white cards, high-contrast typography, and readable palettes.</small>
+                        </label>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="card p-3 border rounded-3 h-100 cursor-pointer hover-teal {% if user.theme_preference == 'dark' %}border-teal bg-light{% endif %}">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="theme_preference" value="dark" {% if user.theme_preference == 'dark' %}checked{% endif %}>
+                                <span class="form-check-label fw-bold text-dark"><i class="bi bi-moon-stars-fill text-info me-1"></i> Midnight Dark Mode</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Dark slate backgrounds designed for late-night study sessions with zero eye strain.</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- 2. AI Mentor Default Skill Level -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-robot text-teal me-2"></i>AI Mentor Default Explanation Level</h5>
+                <p class="text-muted small mb-3">Determines how technical responses and code samples are formatted by default.</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="card p-3 border rounded-3 h-100 cursor-pointer hover-teal">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="skill_level" value="beginner" {% if user.skill_level == 'beginner' or not user.skill_level %}checked{% endif %}>
+                                <span class="form-check-label fw-bold text-dark">Beginner</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Real-world analogies, step-by-step lines, and simplified terms.</small>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="card p-3 border rounded-3 h-100 cursor-pointer hover-teal">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="skill_level" value="intermediate" {% if user.skill_level == 'intermediate' %}checked{% endif %}>
+                                <span class="form-check-label fw-bold text-dark">Intermediate</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Standard technical depth, syntax conventions, and time complexities.</small>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="card p-3 border rounded-3 h-100 cursor-pointer hover-teal">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="skill_level" value="advanced" {% if user.skill_level == 'advanced' %}checked{% endif %}>
+                                <span class="form-check-label fw-bold text-dark">Advanced</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Deep architectural tradeoffs, edge cases, and optimization analysis.</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- 3. Study Goals -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-trophy text-warning me-2"></i>Primary Academic / Exam Goals</h5>
+                <textarea name="study_goals" class="form-control" rows="3" placeholder="e.g. Score >90% in Semester DBMS, Crack GATE CS with top 500 rank, or master DSA for interviews...">{{ user.study_goals or '' }}</textarea>
+                <small class="text-muted">The AI Mentor and Study Planner use your target to calibrate practice pacing.</small>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-teal text-white fw-bold px-4 py-2 shadow-sm">
+                    <i class="bi bi-save me-1"></i> Save Preferences
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- AI Intelligence Engine Architecture Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <h5 class="fw-bold text-dark mb-2"><i class="bi bi-cpu text-teal me-2"></i>Active AI Intelligence Engine</h5>
+        <div class="p-3 bg-light rounded-3 border mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small">Current Provider:</span>
+                <span class="badge {% if has_live_llm %}bg-success{% else %}bg-primary{% endif %} text-white px-3 py-1 font-monospace">
+                    {{ ai_provider }}
+                </span>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="text-muted small">Operational Mode:</span>
+                <strong class="text-dark small">
+                    {% if has_live_llm %}
+                    Live LLM Connected via Environment Key
+                    {% else %}
+                    Deep Local Knowledge Engine (100% Free &amp; Offline)
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+        <p class="text-muted small mb-0">
+            EduMentor AI is engineered to guarantee <strong>complete operational independence</strong>. Even without external API keys, the system delivers structured, verified responses across Python, Java, C, C++, JS, AI/ML, OS, Computer Networks, DBMS, Math, and Aptitude. Optional keys can be set in <code>.env</code> with zero frontend exposure.
+        </p>
+    </div>
+</div>
+{% endblock %}

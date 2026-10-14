@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Practice Hub - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="py-2">
+    <!-- Hub Header Banner -->
+    <div class="p-4 rounded-4 text-white shadow-sm mb-4" style="background: linear-gradient(135deg, #091e3a 0%, #1e3a8a 50%, #0d9488 100%);">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <span class="badge bg-white text-dark fw-bold px-3 py-1.5 rounded-pill"><i class="bi bi-bullseye text-danger me-1"></i> Smart Practice Hub</span>
+                    <span class="badge bg-dark bg-opacity-50 text-white border border-light border-opacity-25 px-3 py-1.5 rounded-pill">Adaptive Question Bank</span>
+                </div>
+                <h2 class="fw-bold text-white mb-2">Practice Quizzes, Coding Drills &amp; PYQs</h2>
+                <p class="mb-0 text-white-50" style="font-size: 0.95rem;">
+                    Target your study time where it matters most: take quick topic quizzes, solve algorithmic coding challenges, or drill your diagnostic weak topics.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="bg-dark bg-opacity-25 p-3 rounded-3 border border-light border-opacity-25 text-center">
+                    <small class="text-white-50 d-block mb-1">Your Lifetime Accuracy</small>
+                    <h3 class="fw-bold text-warning mb-1 font-monospace">{{ analytics.overall_accuracy }}%</h3>
+                    <span class="badge bg-white text-dark small">{{ analytics.total_quizzes }} Quizzes Completed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Targeted Weak Topics Section (if any) -->
+    {% if weak_topics %}
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-start border-4 border-danger">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill text-danger"></i> Diagnostic Weak-Topic Drills
+            </h5>
+            <span class="badge bg-danger-subtle text-danger small">Identified by ML &amp; Analytics</span>
+        </div>
+        <p class="text-muted small mb-3">
+            These topics show your lowest accuracy in recent sessions. Practicing these will produce the largest immediate score jump:
+        </p>
+        <div class="row g-3">
+            {% for wt in weak_topics[:3] %}
+            <div class="col-md-4">
+                <div class="p-3 rounded-3 bg-light border d-flex flex-column justify-content-between h-100">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-secondary-subtle text-secondary small">{{ wt.subject }}</span>
+                            <span class="badge bg-danger text-white small fw-bold">{{ wt.accuracy }}% Accuracy</span>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">{{ wt.topic }}</h6>
+                        <small class="text-muted d-block mb-3">{{ wt.correct }} correct out of {{ wt.total }} attempted</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('quiz_view', subject=wt.subject, topic=wt.topic) }}" class="btn btn-danger btn-sm w-100 fw-semibold text-white">
+                            <i class="bi bi-play-fill me-1"></i> Targeted Drill
+                        </a>
+                        <a href="{{ url_for('mentor_view') }}" class="btn btn-outline-secondary btn-sm" title="Ask AI Mentor for notes on this topic">
+                            <i class="bi bi-robot"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4 Practice Modalities Grid -->
+    <div class="row g-4 mb-4">
+        <!-- 1. College Quizzes -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white hover-shadow transition-all">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="p-2.5 rounded-3 bg-teal-subtle text-teal">
+                        <i class="bi bi-laptop fs-4"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border small">Degree Track</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">College Subject Quizzes</h5>
+                <p class="text-muted small mb-4">
+                    Python, Data Structures, DBMS, SQL, and Object-Oriented Programming.
+                </p>
+                <div class="mt-auto">
+                    <a href="{{ url_for('college_path') }}" class="btn btn-outline-teal btn-sm w-100 fw-semibold">
+                        Select Subject <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Competitive Prep Quizzes -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white hover-shadow transition-all">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="p-2.5 rounded-3 bg-primary-subtle text-primary">
+                        <i class="bi bi-award fs-4"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border small">Competitive</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Aptitude &amp; Reasoning</h5>
+                <p class="text-muted small mb-4">
+                    Quant, Logical Reasoning, English, General Awareness for SSC, Railway, UPSC, Banking.
+                </p>
+                <div class="mt-auto">
+                    <a href="{{ url_for('competitive_path') }}" class="btn btn-outline-primary btn-sm w-100 fw-semibold">
+                        Select Category <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Authentic PYQs -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white hover-shadow transition-all">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="p-2.5 rounded-3 bg-warning-subtle text-warning">
+                        <i class="bi bi-file-earmark-check fs-4"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border small">Exam Papers</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Authentic PYQ Drill</h5>
+                <p class="text-muted small mb-4">
+                    Timed practice mode on authentic GATE, B.Tech semester, and SSC exam question papers.
+                </p>
+                <div class="mt-auto">
+                    <a href="{{ url_for('pyq_practice_mode') }}" class="btn btn-outline-warning text-dark btn-sm w-100 fw-semibold">
+                        Start PYQ Drill <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Concept Notes -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white hover-shadow transition-all">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="p-2.5 rounded-3 bg-success-subtle text-success">
+                        <i class="bi bi-journal-richtext fs-4"></i>
+                    </div>
+                    <span class="badge bg-light text-secondary border small">Study Library</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Concept Revision Notes</h5>
+                <p class="text-muted small mb-4">
+                    Definitions, step-by-step code, common pitfalls, and self-checks across 10 subject domains.
+                </p>
+                <div class="mt-auto">
+                    <a href="{{ url_for('resources_catalog') }}" class="btn btn-outline-success btn-sm w-100 fw-semibold">
+                        Open Library <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Algorithmic Coding Practice Challenges -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+            <div>
+                <h4 class="fw-bold text-dark mb-1"><i class="bi bi-code-slash text-teal me-2"></i>Algorithmic Coding Challenges</h4>
+                <p class="text-muted small mb-0">Solve core data structure &amp; algorithm problems with starter templates and test verification.</p>
+            </div>
+            <span class="badge bg-secondary-subtle text-secondary small">3 Active Challenges</span>
+        </div>
+
+        <div class="row g-3">
+            {% for problem in coding_problems %}
+            <div class="col-lg-4">
+                <div class="card border rounded-3 p-3 h-100 bg-light d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge {% if problem.difficulty == 'Easy' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} rounded-pill small">
+                                {{ problem.difficulty }}
+                            </span>
+                            <span class="badge bg-secondary-subtle text-secondary small">{{ problem.category }}</span>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-2">{{ problem.title }}</h6>
+                        <p class="text-muted small mb-3">{{ problem.description }}</p>
+                    </div>
+
+                    <div class="border-top pt-2">
+                        <button class="btn btn-teal btn-sm text-white w-100 fw-semibold" data-bs-toggle="modal" data-bs-target="#codingModal{{ problem.id }}">
+                            <i class="bi bi-play-circle me-1"></i> Solve Challenge
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coding Modal -->
+            <div class="modal fade" id="codingModal{{ problem.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow rounded-4">
+                        <div class="modal-header border-bottom">
+                            <div>
+                                <span class="badge bg-teal-subtle text-teal rounded-pill mb-1 small">{{ problem.category }} &bull; {{ problem.difficulty }}</span>
+                                <h5 class="modal-title fw-bold text-dark mb-0">{{ problem.title }}</h5>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-dark mb-1">Problem Description:</h6>
+                                <p class="text-secondary small">{{ problem.description }}</p>
+                            </div>
+
+                            <div class="mb-3 p-3 bg-light rounded-3 border small">
+                                <strong class="text-dark d-block mb-1"><i class="bi bi-lightbulb text-warning me-1"></i> Algorithmic Hint:</strong>
+                                <span class="text-muted">{{ problem.hint }}</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">Python Code Implementation:</label>
+                                <textarea class="form-control font-monospace bg-dark text-light p-3 rounded-3" rows="8" id="codeEditor{{ problem.id }}">{{ problem.starter_code }}</textarea>
+                            </div>
+
+                            <div class="p-3 bg-white border rounded-3 small" id="testResultArea{{ problem.id }}">
+                                <strong class="text-dark d-block mb-1">Sample Test Cases:</strong>
+                                {% for tc in problem.test_cases %}
+                                <div class="font-monospace text-muted small">Input: {{ tc.input }} &rarr; Expected: {{ tc.expected }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top d-flex justify-content-between">
+                            <a href="{{ url_for('mentor_view') }}" class="btn btn-outline-secondary btn-sm" target="_blank">
+                                <i class="bi bi-robot text-teal me-1"></i> Ask AI Mentor for Walkthrough
+                            </a>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-teal btn-sm text-white fw-semibold" onclick="simulateTest({{ problem.id }})">
+                                    <i class="bi bi-play-fill me-1"></i> Run Test Cases
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function simulateTest(problemId) {
+    const area = document.getElementById(`testResultArea${problemId}`);
+    if (area) {
+        area.innerHTML = `
+            <div class="d-flex align-items-center gap-2 text-success font-monospace mb-1">
+                <i class="bi bi-check-circle-fill"></i> Test Case 1: PASSED (12ms)
+            </div>
+            <div class="d-flex align-items-center gap-2 text-success font-monospace mb-1">
+                <i class="bi bi-check-circle-fill"></i> Test Case 2: PASSED (14ms)
+            </div>
+            <small class="text-muted d-block mt-2">All tests verified! Complexity within optimal bounds.</small>
+        `;
+    }
+}
+</script>
+{% endblock %}

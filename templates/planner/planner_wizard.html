@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Create Personalized Study Plan - EduMentor AI{% endblock %}
+
+{% block content %}
+<div class="py-2" style="max-width: 800px; margin: 0 auto;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        <div class="text-center mb-4">
+            <div class="d-inline-flex p-3 rounded-circle bg-teal-subtle text-teal mb-3">
+                <i class="bi bi-magic fs-2"></i>
+            </div>
+            <h2 class="fw-bold text-dark mb-1">Smart Study Plan Generator</h2>
+            <p class="text-muted small">
+                Design an adaptive revision and practice roadmap tailored precisely to your daily hours budget and diagnostic weak areas.
+            </p>
+        </div>
+
+        <form action="{{ url_for('planner_generate') }}" method="POST">
+            <!-- Plan Title & Target Exam -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark">Plan Title *</label>
+                    <input type="text" name="plan_title" class="form-control" value="{{ user.target_exam or user.degree_or_stream or 'Semester Prep' }} Sprint Plan" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark">Target Exam or Goal *</label>
+                    <input type="text" name="target_exam_or_goal" class="form-control" value="{{ user.target_exam or user.degree_or_stream or 'B.Tech CS / BCA' }}" required>
+                </div>
+            </div>
+
+            <!-- Daily Available Hours & Target Date -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark">Available Daily Study Hours *</label>
+                    <div class="input-group">
+                        <input type="number" name="daily_hours" class="form-control" min="1" max="10" value="3" step="0.5" required>
+                        <span class="input-group-text bg-light">Hours / Day</span>
+                    </div>
+                    <small class="text-muted">Plan will not schedule more tasks than your budget.</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark">Target Exam Date *</label>
+                    <input type="date" name="target_date" class="form-control" id="targetDateField" required>
+                    <small class="text-muted">Target milestone deadline.</small>
+                </div>
+            </div>
+
+            <!-- Diagnostic Focus Areas (Weak Topics) -->
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-dark">Focus Areas &amp; Weak Topics to Prioritize</label>
+                {% if weak_topics %}
+                <div class="p-3 bg-light rounded-3 border mb-2">
+                    <small class="text-muted d-block mb-2">Auto-detected weak areas from your diagnostic quizzes:</small>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for wt in weak_topics %}
+                        <div class="form-check form-check-inline bg-white px-3 py-1 rounded border small">
+                            <input class="form-check-input" type="checkbox" name="focus_areas" value="{{ wt.topic }}" id="wtCheck{{ loop.index }}" checked>
+                            <label class="form-check-label text-dark fw-medium" for="wtCheck{{ loop.index }}">{{ wt.topic }} ({{ wt.accuracy }}%)</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-tag text-muted"></i></span>
+                    <input type="text" name="focus_areas_custom" class="form-control" placeholder="e.g. Data Structures, SQL, Quantitative Aptitude">
+                </div>
+                <small class="text-muted">Comma-separated subjects or topics you wish to prioritize.</small>
+                {% endif %}
+            </div>
+
+            <!-- Learning Style Selection -->
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-dark">Preferred Study Strategy</label>
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="card p-3 border rounded-3 h-100 cursor-pointer hover-teal">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="learning_style" value="balanced" checked>
+                                <span class="form-check-label fw-bold d-block text-dark">Balanced</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">50% Concept Theory + 50% Practice Quizzes</small>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="card p-3 border rounded-3 h-100 cursor-pointer hover-teal">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="learning_style" value="practice_heavy">
+                                <span class="form-check-label fw-bold d-block text-dark">Practice Heavy</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">70% Mock Tests &amp; PYQs + 30% Rapid Review</small>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="card p-3 border rounded-3 h-100 cursor-pointer hover-teal">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="learning_style" value="deep_dive">
+                                <span class="form-check-label fw-bold d-block text-dark">Foundation First</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">70% Deep Concept Reading + 30% Self-Checks</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-flex justify-content-between align-items-center border-top pt-4">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                <button type="submit" class="btn btn-teal text-white fw-bold px-4 py-2 shadow-sm">
+                    <i class="bi bi-stars me-1"></i> Generate My Study Plan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default target date to 30 days from today
+    const dateField = document.getElementById('targetDateField');
+    if (dateField && !dateField.value) {
+        const d = new Date();
+        d.setDate(d.getDate() + 30);
+        dateField.value = d.toISOString().split('T')[0];
+        dateField.min = new Date().toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}
