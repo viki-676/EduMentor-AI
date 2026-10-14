@@ -1,14 +1,9 @@
 # EduMentor AI 🎓
 ### An AI-Powered Personalized Learning & Competitive Exam Preparation System
-**United Nations Sustainable Development Goal 4: Quality Education**
-
 ---
-
 ## 📌 Project Overview
 **EduMentor AI** is a responsive educational web application built for college students and competitive exam aspirants. It addresses learning gaps by providing calibrated practice quizzes, identifying weak topics (&lt;60% accuracy), delivering actionable personalized study plans, and offering an autonomous **AI Mentor Agent**—entirely running locally on Windows with **zero paid third-party API dependencies**.
-
 ---
-
 ## 🛠️ Technology Stack
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+), Bootstrap 5.3, Bootstrap Icons
 - **Backend**: Python 3.14+, Flask 3.1
@@ -17,11 +12,8 @@
 - **Visualizations**: Chart.js 4.4
 - **Testing**: pytest 9.1
 - **OS**: Windows (PowerShell compatible)
-
 ---
-
 ## 🎯 Two Targeted Learning Paths
-
 ### 💻 Path A — College Learning
 Designed for **B.Tech, BCA, B.Sc. (Computer Science)** and degree students for semester exams and campus placement prep:
 1. **Python Programming**: Variables, data types, scoping rules, mutability, functions, OOP, and MRO.
@@ -34,9 +26,7 @@ Designed for aspirants appearing for **SSC (CGL/CHSL), Railway (RRB), Banking (I
 2. **Logical Reasoning**: Number & Letter Series, Coding-Decoding, Blood Relations, Syllogisms, Direction Sense.
 3. **English Language**: Error Spotting, Conditional Grammar, Vocabulary (Synonyms/Antonyms), Idioms & Phrases.
 4. **General Awareness**: Indian Polity & Constitution (Article 32, DPSPs), Modern Indian History, Geography, Economy (RBI), and Science.
-
 ---
-
 ## 📂 Project Structure
 
 ```text
@@ -98,28 +88,22 @@ EduMentorAI/
 └── docs/
     └── REPORT.md               # Full project report, diagrams, viva Q&A, Lean Canvas
 ```
-
 ---
-
 ## 🚀 Quick Start Guide (Windows PowerShell)
-
 ### Step 1: Open PowerShell in Project Directory
 Ensure you are in the project folder:
 ```powershell
 cd c:\Users\Hp\Downloads\EduMentorAI
 ```
-
 ### Step 2: Install Dependencies
 ```powershell
 pip install -r requirements.txt
 ```
-
 ### Step 3: Run Test Suite
 Verify that all 15 unit and integration tests pass:
 ```powershell
 python -m pytest -v
 ```
-
 ### Step 4: Start the Flask Application
 ```powershell
 python app.py
@@ -129,13 +113,10 @@ Output will show:
  * Running on http://127.0.0.1:5000
  * Press CTRL+C to quit
 ```
-
 ### Step 5: Open in Your Browser
 Navigate to:
 👉 **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
-
 ---
-
 ## 🧪 Testing the Complete Workflow
 1. **Register an Account**: Click **"Get Started Free"**, enter your details (e.g. `Rahul Sharma`, username: `rahul`, password: `password123`), choose **College Track** or **Competitive Exam**.
 2. **Take a Quiz**:
@@ -150,9 +131,7 @@ Navigate to:
 5. **Chat with AI Mentor**:
    - Click **"AI Mentor"** from the navigation bar.
    - Click any prompt chip (e.g., *"Explain Python mutability"* or *"How am I doing?"*) or ask custom questions.
-
 ---
-
 ## 🤖 Machine Learning Model Details
 - **Module**: `ml/performance_predictor.py`
 - **Target Variable**: `needs_intervention` (Binary classification: `1` = At Risk / Needs Intervention, `0` = On Track / Proficient).
@@ -163,16 +142,11 @@ Navigate to:
   - **Model Accuracy (`LogisticRegression` + `StandardScaler`)**: ~76.7%
   - **Precision**: 56.0% | **Recall**: 36.8% | **F1-Score**: 0.444
 - **Fallback**: Rule-based pedagogical recommendations serve as the reliable primary guidance engine.
-
 ---
-
 ## 🔒 Security & Best Practices
 - **Password Hashing**: Uses Werkzeug's `generate_password_hash` with secure PBKDF2/SHA256 salt. Plaintext passwords are never stored.
 - **Access Control**: Users can only access their own quiz results; attempts belonging to other user IDs are blocked.
 - **Input Validation**: Enforces minimum lengths, unique email/username constraints, and type coercion.
-
 ---
-
 ## 📜 Academic Attribution
-- Aligned with **United Nations Sustainable Development Goal 4 (SDG 4)**.
 - Designed and verified for academic submission and technical viva voce presentations.
