@@ -69,9 +69,58 @@ def calculate_user_streak(user_id):
     return streak
 
 
+def resolve_config_name(config_name=None):
+    """
+    Safely resolve environment configuration name.
+    Checks explicit parameter, FLASK_CONFIG, FLASK_ENV, ENVIRONMENT, ENV,
+    RENDER cloud environment flag, and FLASK_DEBUG setting.
+    Ensures production mode disables Flask debug mode even if FLASK_ENV is not set.
+    """
+    if config_name and config_name != 'default':
+        return config_name
+
+    env_val = (
+        os.environ.get('FLASK_CONFIG') or
+        os.environ.get('FLASK_ENV') or
+        os.environ.get('ENVIRONMENT') or
+        os.environ.get('ENV') or
+        ''
+    ).lower().strip()
+
+    if env_val in ('production', 'prod'):
+        return 'production'
+    elif env_val in ('testing', 'test'):
+        return 'testing'
+    elif env_val in ('development', 'dev'):
+        return 'development'
+
+    # Auto-detect Render hosting environment (RENDER=true is automatically set by Render)
+    if os.environ.get('RENDER') == 'true' or os.environ.get('RENDER_SERVICE_ID'):
+        return 'production'
+
+    # If FLASK_DEBUG is explicitly turned off (0, false, no), treat as production
+    flask_debug = os.environ.get('FLASK_DEBUG', '').lower().strip()
+    if flask_debug in ('0', 'false', 'no'):
+        return 'production'
+
+    return 'development'
+
+
 def create_app(config_name='default'):
+    target_config = resolve_config_name(config_name)
     app = Flask(__name__)
-    app.config.from_object(config_by_name[config_name])
+    config_cls = config_by_name.get(
+        target_config,
+        config_by_name['production' if 'prod' in target_config else 'development']
+    )
+    app.config.from_object(config_cls)
+
+    # Production safety enforcement: explicitly ensure DEBUG and TESTING are disabled in production
+    flask_debug = os.environ.get('FLASK_DEBUG', '').lower().strip()
+    if target_config in ('production', 'prod') or flask_debug in ('0', 'false', 'no'):
+        app.config['DEBUG'] = False
+        app.debug = False
+        app.config['TESTING'] = False
 
     # Ensure instance folder exists
     try:
@@ -1371,8 +1420,10 @@ def create_app(config_name='default'):
     return app
 
 
-app = create_app(os.environ.get('FLASK_ENV', 'development'))
+# Module-level WSGI entry point for Gunicorn (e.g. gunicorn --bind 0.0.0.0:$PORT app:app)
+app = create_app()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='127.0.0.1', port=port, debug=True)
+    is_prod = (resolve_config_name() in ('production', 'prod'))
+    app.run(host='127.0.0.1', port=port, debug=not is_prod)

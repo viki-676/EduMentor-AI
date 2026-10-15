@@ -5,14 +5,37 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 # Load environment variables from .env if present
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
+def get_sqlite_uri(custom_url=None):
+    """
+    Safely resolve SQLite database URI for cross-platform compatibility
+    (Windows local development and Render/Linux deployment).
+    """
+    if custom_url and not custom_url.startswith('sqlite:///'):
+        return custom_url
+
+    if custom_url and custom_url.startswith('sqlite:///'):
+        raw = custom_url[len('sqlite:///'):]
+        if raw.startswith('/') or (len(raw) > 2 and raw[1] == ':'):
+            abs_path = raw
+        else:
+            abs_path = os.path.join(BASE_DIR, raw)
+    else:
+        abs_path = os.path.join(BASE_DIR, 'instance', 'edumentor.db')
+
+    # Ensure parent directory exists before SQLite tries to connect
+    try:
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+    except OSError:
+        pass
+
+    # Normalize backslashes to forward slashes for cross-platform SQLite URI
+    norm_path = os.path.abspath(abs_path).replace('\\', '/')
+    return f"sqlite:///{norm_path}"
+
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'edumentor-super-secure-dev-key-2026')
-    db_env = os.environ.get('DATABASE_URL')
-    if db_env and db_env.startswith('sqlite:///') and not (len(db_env) > 11 and db_env[11] == ':'):
-        rel_path = db_env.replace('sqlite:///', '', 1)
-        SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(BASE_DIR, rel_path)}"
-    else:
-        SQLALCHEMY_DATABASE_URI = db_env or f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'edumentor.db')}"
+    SQLALCHEMY_DATABASE_URI = get_sqlite_uri(os.environ.get('DATABASE_URL'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
     TESTING = False
@@ -33,10 +56,12 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
+    TESTING = False
 
 config_by_name = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
+    'prod': ProductionConfig,
     'default': DevelopmentConfig
 }
